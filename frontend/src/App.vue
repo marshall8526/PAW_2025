@@ -1,13 +1,13 @@
 <script>
+  import First from './components/First.vue'
   export default {
-    
+    components: { First }
   }
 </script>
 
 <template>
   <main>
-    <h1>PAW 2025</h1>
-    <br/>
+    <First/>
   </main>
 </template>
 
