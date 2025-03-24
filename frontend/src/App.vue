@@ -1,7 +1,9 @@
 <script>
   import PersonEditor from './components/PersonEditor.vue'
+  import PersonsList from './components/PersonsList.vue'
+
   export default {
-    components: { PersonEditor },
+    components: { PersonEditor, PersonsList },
     data() {
       return {
         showPersonEditor: false,
@@ -32,7 +34,8 @@
 <template>
   <main>
     <v-btn variant="elevated" color="primary" @click="showPersonEditor = true">Nowa osoba</v-btn>
-  </main>
+    <PersonsList/>
+</main>
 
   <v-dialog v-model="showPersonEditor">
     <PersonEditor @cancel="showPersonEditor = false" @ok="saved" @error="notsaved"/>
