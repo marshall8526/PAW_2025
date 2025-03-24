@@ -22,6 +22,15 @@ app.get('/api/test', (req, res) => {
     res.json({ test: true })
 })
 
+app.get('/api/person', (req, res) => {
+    const filter = req.query.filter || ''
+    let skip = +req.query.skip || 0
+    if(skip < 0) skip = 0
+    let limit = +req.query.limit
+    if(!limit || limit < 0 || limit > 1000) limit = 1000
+    db.getPersons(res, filter, skip, limit)
+})
+
 app.post('/api/person', (req, res) => {
     const err = db.savePerson(req.body)
     if(err) {

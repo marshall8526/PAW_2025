@@ -47,5 +47,25 @@ module.exports = {
     } catch(err) {
       return err.message
     }
+  },
+  getPersons(res, filter, skip, limit) {
+    Person.aggregate([
+      {
+        '$match': { 
+          $or: [
+            { firstName: { $regex: filter } },
+            { lastName: { $regex: filter } }
+          ]
+        }  
+      }, {
+        '$skip': skip
+      }, {
+        '$limit': limit
+      }
+    ]).then(data => {
+      res.json(data)
+    }).catch(err => {
+      res.status(400).json({ error: err.message })
+    })
   }
 }
