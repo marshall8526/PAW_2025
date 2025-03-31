@@ -1,10 +1,14 @@
 <script>
+    import PersonEditor from './PersonEditor.vue'
+
     export default {
+        components: { PersonEditor },
+        emits: [ 'saved', 'error' ],
         data() {
             return {
                 persons: {},
                 person: {},
-                editor: false,
+                showPersonEditor: false,
                 itemsPerPage: 10,
                 headers: [
                         { title: 'Imię', key: 'firstName', align: 'start', sortable: true },
@@ -37,6 +41,14 @@
             },
             clickItem() {
                 alert('clickItem')
+            },
+            saved() {
+                this.showPersonEditor = false
+                this.$emit('saved', 'Zapisano')
+            },
+            notsaved(data) {
+                this.showPersonEditor = false
+                this.$emit('error', data)
             }
         }
     }
@@ -45,7 +57,7 @@
 <template>
     <v-card variant="outlined">
         <v-card-title class="d-flex">
-            Osoby
+            <v-btn variant="elevated" color="primary" @click="showPersonEditor = true">Nowa osoba</v-btn>
         </v-card-title>
         <v-card-text>
             <v-data-table-server v-model:items-per-page="itemsPerPage" :headers="headers" :items="serverItems"
@@ -62,6 +74,10 @@
             </v-data-table-server>
         </v-card-text>
     </v-card>
+
+    <v-dialog v-model="showPersonEditor">
+        <PersonEditor @cancel="showPersonEditor = false" @ok="saved" @error="notsaved"/>
+    </v-dialog>
 </template>
 
 <style scoped>
