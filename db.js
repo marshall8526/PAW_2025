@@ -38,16 +38,18 @@ mongoose.connect(url)
 })
 
 module.exports = {
-  savePerson(input) {
-    try {
-      const person = new Person(input)
-      const err = person.validateSync()
-      if(err) return err.message
-      person.save()
-      return null
-    } catch(err) {
-      return err.message
+  savePerson(res, input) {
+    const person = new Person(input)
+    const err = person.validateSync()
+    if(err) {
+      res.status(400).json({ error: err })
+      return
     }
+    person.save().then(_ => {
+      res.json({ ok: true })
+    }).catch(err => {
+      res.status(400).json({ error: err.errmsg })
+    })
   },
   getPersons(res, filter, order, skip, limit) {
     Person.aggregate([

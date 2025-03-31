@@ -37,12 +37,7 @@ app.get('/api/person', (req, res) => {
 })
 
 app.post('/api/person', (req, res) => {
-    const err = db.savePerson(req.body)
-    if(err) {
-        res.status(400).json({ error: err })
-    } else {
-        res.json({ ok: true })
-    }
+    const err = db.savePerson(res, req.body)
 })
 
 app.listen(config.port, () => {
