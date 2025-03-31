@@ -59,14 +59,23 @@ module.exports = {
           ]
         }  
       }, {
-        '$sort': order
-      }, {
-        '$skip': skip
-      }, {
-        '$limit': limit
-      }
-    ]).then(data => {
-      res.json(data)
+        '$facet': {
+          count: [ { $count: 'count' } ],
+          data: [
+            {
+              '$sort': order
+            }, {
+              '$skip': skip
+            }, {
+              '$limit': limit
+            }
+          ]
+        }
+      }, 
+    ]).then(facet => {
+      const result = facet[0]
+      result.count = result.count[0].count
+      res.json(result)
     }).catch(err => {
       res.status(400).json({ error: err.message })
     })

@@ -22,19 +22,16 @@
             loadItems({ page, itemsPerPage, sortBy }) {
                 this.loading = true
                 const skip = (page - 1) * itemsPerPage
-                let queryString = { skip, limit: itemsPerPage, filter: this.search }
+                let queryString = { skip, limit: itemsPerPage, filter: this.search, ...sortBy }
                 if(sortBy && sortBy[0]) {
                     queryString.sort = sortBy[0].key
                     queryString.order = sortBy[0].order
-                } else {
-                    queryString.sort = 'lastName'
-                    queryString.order = 'asc'
                 }           
                 fetch('/api/person?' + 
                     new URLSearchParams(queryString).toString())
-                .then(res => res.json().then(data => {
-                    this.itemsLength = 1000
-                    this.serverItems = data
+                .then(res => res.json().then(result => {
+                    this.itemsLength = result.count
+                    this.serverItems = result.data
                     this.loading = false
                 }))
             },
