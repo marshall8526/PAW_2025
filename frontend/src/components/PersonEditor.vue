@@ -1,6 +1,7 @@
 <script>
   export default {
     emits: [ 'ok', 'cancel', 'error' ],
+    props: [ 'person' ],
     data() {
         return {
             input: { firstName: '', lastName: '', birthDate: '1970-01-01' }
@@ -20,6 +21,9 @@
                 }
             }))
         }
+    },
+    mounted() {
+      Object.assign(this.input, this.person)
     }
   }
 </script>
@@ -48,7 +52,9 @@
 
       <v-card-actions>
         <v-spacer></v-spacer>
-        <v-btn variant="elevated" color="primary" @click="save">Zapisz</v-btn>
+        <v-btn variant="elevated" color="primary" @click="save" v-if="!input._id">Zapisz</v-btn>
+        <v-btn variant="elevated" color="primary" @click="modify" v-if="input._id">Zmień</v-btn>
+        <v-btn variant="elevated" color="error" @click="remove" v-if="input._id">Usuń</v-btn>
         <v-btn variant="elevated" @click="$emit('cancel')">Anuluj</v-btn>
       </v-card-actions>
     </v-card>

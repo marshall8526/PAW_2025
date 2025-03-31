@@ -75,6 +75,10 @@ module.exports = {
     ]).then(facet => {
       const result = facet[0]
       result.count = result.count[0].count
+      result.data = result.data.map(item => {
+        const newItem = new Person(item).toObject()
+        return newItem
+      })
       res.json(result)
     }).catch(err => {
       res.status(400).json({ error: err.message })

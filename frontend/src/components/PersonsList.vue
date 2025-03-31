@@ -39,16 +39,22 @@
                     this.loading = false
                 }))
             },
-            clickItem() {
-                alert('clickItem')
+            clickItem(_, data) {
+                Object.assign(this.person, data.item)
+                this.showPersonEditor = true
             },
             saved() {
                 this.showPersonEditor = false
+                this.tableKey++
                 this.$emit('saved', 'Zapisano')
             },
             notsaved(data) {
                 this.showPersonEditor = false
                 this.$emit('error', data)
+            },
+            newPerson() {
+                this.person = {}
+                this.showPersonEditor = true
             }
         }
     }
@@ -57,7 +63,7 @@
 <template>
     <v-card variant="outlined">
         <v-card-title class="d-flex">
-            <v-btn variant="elevated" color="primary" @click="showPersonEditor = true">Nowa osoba</v-btn>
+            <v-btn variant="elevated" color="primary" @click="newPerson">Nowa osoba</v-btn>
         </v-card-title>
         <v-card-text>
             <v-data-table-server v-model:items-per-page="itemsPerPage" :headers="headers" :items="serverItems"
@@ -76,7 +82,7 @@
     </v-card>
 
     <v-dialog v-model="showPersonEditor">
-        <PersonEditor @cancel="showPersonEditor = false" @ok="saved" @error="notsaved"/>
+        <PersonEditor :person="person" @cancel="showPersonEditor = false" @ok="saved" @error="notsaved"/>
     </v-dialog>
 </template>
 
