@@ -3,6 +3,7 @@ const mongoose = require('mongoose')
 
 const schema = new mongoose.Schema({
     _id: { type: String, default: uuid.v4 },
+    created: { type: Date, required: false, default: new Date() },
     firstName: { type: String, required: true, validate: {
         validator: v => {
           return /^\p{L}/u.test(v)
@@ -48,7 +49,7 @@ module.exports = {
       return err.message
     }
   },
-  getPersons(res, filter, skip, limit) {
+  getPersons(res, filter, order, skip, limit) {
     Person.aggregate([
       {
         '$match': { 
@@ -57,6 +58,8 @@ module.exports = {
             { lastName: { $regex: filter } }
           ]
         }  
+      }, {
+        '$sort': order
       }, {
         '$skip': skip
       }, {

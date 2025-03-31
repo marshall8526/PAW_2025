@@ -9,7 +9,7 @@ git clone https://gitlab.com/mariusz.jarocki/paw2025.git
 Jak zaktualizować istniejący folder z plikami projektu do najnowszej wersji
 ```
 cd paw2025
-git reset
+git reset --hard HEAD
 git pull
 ```
 

@@ -24,11 +24,16 @@ app.get('/api/test', (req, res) => {
 
 app.get('/api/person', (req, res) => {
     const filter = req.query.filter || ''
+    const order = { created: 1 }
+    if(req.query.sort) {
+        delete order.created
+        order[req.query.sort] = req.query.order == 'desc' ? -1 : 1
+    }
     let skip = +req.query.skip || 0
     if(skip < 0) skip = 0
     let limit = +req.query.limit
     if(!limit || limit < 0 || limit > 1000) limit = 1000
-    db.getPersons(res, filter, skip, limit)
+    db.getPersons(res, filter, order, skip, limit)
 })
 
 app.post('/api/person', (req, res) => {
