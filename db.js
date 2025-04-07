@@ -42,13 +42,29 @@ module.exports = {
     const person = new Person(input)
     const err = person.validateSync()
     if(err) {
-      res.status(400).json({ error: err })
+      res.status(400).json({ error: err.message })
       return
     }
-    person.save().then(_ => {
-      res.json({ ok: true })
+    person.save().then(newPerson => {
+      res.json(newPerson)
     }).catch(err => {
       res.status(400).json({ error: err.errmsg })
+    })
+  },
+  modifyPerson(res, input) {
+    const _id = input._id
+    delete input._id
+    Person.findOneAndUpdate({ _id }, { $set: input }, { runValidators: true, new: true }).then(updatedPerson => {
+      res.json(updatedPerson)
+    }).catch(err => {
+      res.status(400).json({ error: err.message })
+    })
+  },
+  removePerson(res, _id) {
+    Person.findOneAndDelete({ _id }).then(deletedPerson => {
+      res.json(deletedPerson)
+    }).catch(err => {
+      res.status(400).json({ error: err.message })
     })
   },
   getPersons(res, filter, order, skip, limit) {

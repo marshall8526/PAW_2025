@@ -37,7 +37,15 @@ app.get('/api/person', (req, res) => {
 })
 
 app.post('/api/person', (req, res) => {
-    const err = db.savePerson(res, req.body)
+    db.savePerson(res, req.body)
+})
+
+app.put('/api/person', (req, res) => {
+    db.modifyPerson(res, req.body)
+})
+
+app.delete('/api/person', (req, res) => {
+    db.removePerson(res, req.query._id)
 })
 
 app.listen(config.port, () => {

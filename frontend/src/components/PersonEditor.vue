@@ -20,6 +20,31 @@
                   this.$emit('ok')
                 }
             }))
+        },
+        modify() {
+            fetch('/api/person', {
+                method: 'PUT',
+                headers: { 'Content-type': 'application/json' },
+                body: JSON.stringify(this.input)
+            }).then(res => res.json().then(body => {
+                if(body.error) {
+                  this.$emit('error', body.error)
+                } else {
+                  this.$emit('ok')
+                }
+            }))
+        },
+        remove() {
+            fetch('/api/person?_id=' + this.input._id, {
+                method: 'DELETE',
+                headers: { 'Content-type': 'application/json' }
+            }).then(res => res.json().then(body => {
+                if(body.error) {
+                  this.$emit('error', body.error)
+                } else {
+                  this.$emit('ok')
+                }
+            }))
         }
     },
     mounted() {
