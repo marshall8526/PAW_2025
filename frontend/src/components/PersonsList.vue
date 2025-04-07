@@ -46,7 +46,7 @@
             saved() {
                 this.showPersonEditor = false
                 this.tableKey++
-                this.$emit('saved', 'Zapisano')
+                this.$emit('saved', 'Wykonano')
             },
             notsaved(data) {
                 this.showPersonEditor = false
