@@ -2,8 +2,12 @@ const express = require('express')
 const cors = require('cors')
 const bodyParser = require('body-parser')
 const morgan = require('morgan')
+const expressSession = require('express-session')
+const passport = require('passport')
+const passportJson = require('passport-json')
 
 const db = require('./db')
+const auth = require('./auth')
 
 const config = {
     port: 8000,
@@ -16,11 +20,19 @@ app.use(morgan('tiny'))
 app.use(cors())
 app.use(bodyParser.json())
 
-app.use(express.static(config.frontend))
+const session = expressSession({ secret: 'paw2025', resave: false , saveUninitialized: true })
+app.use(session)
+app.use(passport.initialize())
+app.use(passport.session())
+passport.use(new passportJson.Strategy(auth.checkCredentials))
+passport.serializeUser(auth.serialize)
+passport.deserializeUser(auth.deserialize)
+const authEndpoint = '/api/auth'
+app.get(authEndpoint, auth.whoami)
+app.post(authEndpoint, passport.authenticate('json', { failWithError: true }), auth.login, auth.errorHandler)
+app.delete(authEndpoint, auth.logout)
 
-app.get('/api/test', (req, res) => {
-    res.json({ test: true })
-})
+app.use(express.static(config.frontend))
 
 app.get('/api/person', (req, res) => {
     const filter = req.query.filter || ''

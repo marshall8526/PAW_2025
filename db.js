@@ -1,6 +1,8 @@
 const uuid = require('uuid')
 const mongoose = require('mongoose')
 
+const auth = require('./auth')
+
 const schema = new mongoose.Schema({
     _id: { type: String, default: uuid.v4 },
     created: { type: Date, required: false, default: new Date() },
@@ -30,6 +32,7 @@ let Person = null
 mongoose.connect(url)
 .then(conn => {
     console.log(`Connection to ${url} established`)
+    auth.init(conn)
     Person = conn.model('Person', schema)
 })
 .catch(err => {

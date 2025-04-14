@@ -13,6 +13,7 @@
       return {
         routes,
         operational: false,
+        session: {},
         popup: {
           on: false,
           color: 'success',
@@ -26,20 +27,26 @@
         this.popup.text = data
         this.popup.on = true
       },
-      error(data) {
+      error(data, timeout = 3000) {
         this.popup.color = 'error'
         this.popup.text = data
+        this.popup.timeout = timeout
         this.popup.on = true
-      }
+      },
+      whoami() {
+        fetch('/api/auth')
+        .then(res => res.json()
+          .then(data => { 
+            this.operational = true
+            this.session = data 
+          })
+          .catch(err => { this.error('Uszkodzona odpowiedź z backendu', -1) }))
+        .catch(err => {
+        this.error(err.message, -1)
+      })}
     },
     mounted() {
-      fetch('/api/test')
-      .then(res => res.json()
-        .then(_ => { this.operational = true })
-        .catch(err => { this.error('Uszkodzona odpowiedź z backendu') }))
-      .catch(err => {
-        this.error(err.message)
-      })
+      this.whoami()
     }
   }
 </script>
@@ -56,7 +63,7 @@
     </v-main>
   </v-app>
 
-  <v-snackbar v-model="popup.on" :color="popup.color">
+  <v-snackbar v-model="popup.on" :color="popup.color" :timeout="popup.timeout">
     <div style="width: 100%; text-align: center;">{{ popup.text }}</div>
   </v-snackbar>
 </template>
