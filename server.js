@@ -34,7 +34,7 @@ app.delete(authEndpoint, auth.logout)
 
 app.use(express.static(config.frontend))
 
-app.get('/api/person', (req, res) => {
+app.get('/api/person', auth.checkIfInRole([ 0, 1 ]), (req, res) => {
     const filter = req.query.filter || ''
     const order = { created: 1 }
     if(req.query.sort) {
@@ -48,15 +48,15 @@ app.get('/api/person', (req, res) => {
     db.getPersons(res, filter, order, skip, limit)
 })
 
-app.post('/api/person', (req, res) => {
+app.post('/api/person', auth.checkIfInRole([ 0 ]), (req, res) => {
     db.savePerson(res, req.body)
 })
 
-app.put('/api/person', (req, res) => {
+app.put('/api/person', auth.checkIfInRole([ 0 ]), (req, res) => {
     db.modifyPerson(res, req.body)
 })
 
-app.delete('/api/person', (req, res) => {
+app.delete('/api/person', auth.checkIfInRole([ 0 ]), (req, res) => {
     db.removePerson(res, req.query._id)
 })
 
