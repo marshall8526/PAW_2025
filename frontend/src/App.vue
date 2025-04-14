@@ -1,19 +1,23 @@
 <script>
+  import LoginDialog from './components/LoginDialog.vue'
+  import LogoutDialog from './components/LogoutDialog.vue'
   import Dashboard from './components/Dashboard.vue'
   import PersonsList from './components/PersonsList.vue'
 
   export const routes = [
-    { path: '/', component: Dashboard, title: 'Dashboard', icon: 'mdi-home' },
-    { path: '/persons', component: PersonsList, title: 'Persons', icon: 'mdi-account-multiple-outline' }
+    { path: '/', component: Dashboard, title: 'Pulpit', icon: 'mdi-home' },
+    { path: '/persons', component: PersonsList, title: 'Osoby', icon: 'mdi-account-multiple-outline' }
   ]
 
   export default {
-    components: { Dashboard, PersonsList },
+    components: { LoginDialog, LogoutDialog, Dashboard, PersonsList },
     data() {
       return {
         routes,
         operational: false,
         session: {},
+        loginDialog: false,
+        logoutDialog: false,
         popup: {
           on: false,
           color: 'success',
@@ -43,7 +47,17 @@
           .catch(err => { this.error('Uszkodzona odpowiedź z backendu', -1) }))
         .catch(err => {
         this.error(err.message, -1)
-      })}
+      })},
+      onLogin() {
+        this.loginDialog = false
+        this.whoami()
+        this.$router.push('/')
+      },
+      onLogout() {
+        this.logoutDialog = false
+        this.whoami()
+        this.$router.push('/')
+      }
     },
     mounted() {
       this.whoami()
@@ -56,12 +70,22 @@
     <v-navigation-drawer permanent density="compact">
       <v-list nav>
         <v-list-item v-for="route in routes" :prepend-icon="route.icon" :title="route.title" :to="route.path"></v-list-item>
+        <v-list-item prepend-icon="mdi-login" title="Login" @click="loginDialog = true" v-if="!session.username"></v-list-item>
+        <v-list-item prepend-icon="mdi-logout" title="Logout" @click="logoutDialog = true" v-if="session.username"></v-list-item>
       </v-list>
     </v-navigation-drawer>
     <v-main>
-      <router-view @saved="ok" @error="error"/>
+      <router-view @saved="ok" @error="error" :session="session"/>
     </v-main>
   </v-app>
+
+  <v-dialog v-model="loginDialog" width="33%">
+      <LoginDialog @close="onLogin" />
+    </v-dialog>
+
+    <v-dialog v-model="logoutDialog" width="33%">
+      <LogoutDialog @close="onLogout" />
+    </v-dialog>
 
   <v-snackbar v-model="popup.on" :color="popup.color" :timeout="popup.timeout">
     <div style="width: 100%; text-align: center;">{{ popup.text }}</div>

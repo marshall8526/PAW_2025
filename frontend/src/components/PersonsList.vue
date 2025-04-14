@@ -4,6 +4,7 @@
     export default {
         components: { PersonEditor },
         emits: [ 'saved', 'error' ],
+        props: [ 'session' ],
         data() {
             return {
                 persons: {},
