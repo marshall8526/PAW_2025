@@ -1,4 +1,5 @@
 <script>
+  import common from './mixins/common.js' 
   import LoginDialog from './components/LoginDialog.vue'
   import LogoutDialog from './components/LogoutDialog.vue'
   import Dashboard from './components/Dashboard.vue'
@@ -6,10 +7,11 @@
 
   export const routes = [
     { path: '/', component: Dashboard, title: 'Pulpit', icon: 'mdi-home' },
-    { path: '/persons', component: PersonsList, title: 'Osoby', icon: 'mdi-account-multiple-outline' }
+    { path: '/persons', component: PersonsList, title: 'Osoby', icon: 'mdi-account-multiple-outline', roles: [ 0, 1 ] }
   ]
 
   export default {
+    mixins: [ common ],
     components: { LoginDialog, LogoutDialog, Dashboard, PersonsList },
     data() {
       return {
@@ -69,7 +71,7 @@
   <v-app v-if="operational">
     <v-navigation-drawer permanent density="compact">
       <v-list nav>
-        <v-list-item v-for="route in routes" :prepend-icon="route.icon" :title="route.title" :to="route.path"></v-list-item>
+        <v-list-item v-for="route in routes" :prepend-icon="route.icon" :title="route.title" :to="route.path" v-show="!route.roles || checkIfInRole(session, route.roles)"></v-list-item>
         <v-list-item prepend-icon="mdi-login" title="Login" @click="loginDialog = true" v-if="!session.username"></v-list-item>
         <v-list-item prepend-icon="mdi-logout" title="Logout" @click="logoutDialog = true" v-if="session.username"></v-list-item>
       </v-list>

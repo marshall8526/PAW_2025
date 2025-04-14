@@ -1,10 +1,12 @@
 <script>
+    import common from '../mixins/common.js'
     import PersonEditor from './PersonEditor.vue'
 
     export default {
         components: { PersonEditor },
         emits: [ 'saved', 'error' ],
         props: [ 'session' ],
+        mixins: [ common ],
         data() {
             return {
                 persons: {},
@@ -41,6 +43,7 @@
                 }))
             },
             clickItem(_, data) {
+                if(!this.checkIfInRole(this.session, [ 0 ])) return
                 Object.assign(this.person, data.item)
                 this.showPersonEditor = true
             },
@@ -64,7 +67,7 @@
 <template>
     <v-card variant="outlined">
         <v-card-title class="d-flex">
-            <v-btn variant="elevated" color="primary" @click="newPerson">Nowa osoba</v-btn>
+            <v-btn variant="elevated" color="primary" @click="newPerson" v-if="checkIfInRole(session, [ 0 ])">Nowa osoba</v-btn>
         </v-card-title>
         <v-card-text>
             <v-data-table-server v-model:items-per-page="itemsPerPage" :headers="headers" :items="serverItems"
