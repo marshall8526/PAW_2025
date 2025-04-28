@@ -4,10 +4,12 @@
   import LogoutDialog from './components/LogoutDialog.vue'
   import Dashboard from './components/Dashboard.vue'
   import PersonsList from './components/PersonsList.vue'
+  import ProjectsList from './components/ProjectsList.vue'
 
   export const routes = [
     { path: '/', component: Dashboard, title: 'Pulpit', icon: 'mdi-home' },
-    { path: '/persons', component: PersonsList, title: 'Osoby', icon: 'mdi-account-multiple-outline', roles: [ 0, 1 ] }
+    { path: '/persons', component: PersonsList, title: 'Osoby', icon: 'mdi-account-multiple-outline', roles: [ 0, 1 ] },
+    { path: '/projects', component: ProjectsList, title: 'Projekty', icon: 'mdi-account-multiple-outline', roles: [ 0, 1 ] }
   ]
 
   export default {
