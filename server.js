@@ -45,21 +45,27 @@ app.get('/api/person', auth.checkIfInRole([ 0, 1 ]), (req, res) => {
     if(skip < 0) skip = 0
     let limit = +req.query.limit
     if(!limit || limit < 0 || limit > 1000) limit = 1000
-    db.getPersons(res, filter, order, skip, limit)
+    const matching = { 
+    $or: [
+        { firstName: { $regex: filter } },
+        { lastName: { $regex: filter } }
+      ]
+    }
+    db.get('person', res, matching, order, skip, limit)
 })
 
 app.post('/api/person', auth.checkIfInRole([ 0 ]), (req, res) => {
-    db.savePerson(res, req.body)
+    db.save('person', res, req.body)
 })
 
 app.put('/api/person', auth.checkIfInRole([ 0 ]), (req, res) => {
-    db.modifyPerson(res, req.body)
+    db.modify('person', res, req.body)
 })
 
 app.delete('/api/person', auth.checkIfInRole([ 0 ]), (req, res) => {
-    db.removePerson(res, req.query._id)
+    db.remove('person', res, req.query._id)
 })
 
 app.listen(config.port, () => {
-    console.log('Backend listening on port', config.port)
+    console.log('Backend słucha na porcie', config.port)
 })

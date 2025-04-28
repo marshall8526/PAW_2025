@@ -3,17 +3,20 @@ const mongoose = require('mongoose')
 
 const auth = require('./auth')
 
-const schema = new mongoose.Schema({
+const schema = {
+  person: new mongoose.Schema({
     _id: { type: String, default: uuid.v4 },
     created: { type: Date, required: false, default: new Date() },
-    firstName: { type: String, required: true, validate: {
+    firstName: {
+      type: String, required: true, validate: {
         validator: v => {
           return /^\p{L}/u.test(v)
         },
         message: props => `${props.value} does not start from a letter`
       }
     },
-    lastName: { type: String, required: true, validate: {
+    lastName: {
+      type: String, required: true, validate: {
         validator: v => {
           return /^\p{L}/u.test(v)
         },
@@ -21,64 +24,79 @@ const schema = new mongoose.Schema({
       }
     },
     birthDate: { type: Date, required: true, transform: v => v.toISOString().substr(0, 10) }
-}, {
+  }, {
     versionKey: false,
     additionalProperties: false
-})
+  }),
+  project: new mongoose.Schema({
+    _id: { type: String, default: uuid.v4 },
+    created: { type: Date, required: false, default: new Date() },
+    name: {
+      type: String, required: true, validate: {
+        validator: v => {
+          return /^\p{L}/u.test(v)
+        },
+        message: props => `${props.value} does not start from a letter`
+      }
+    },
+    manager_id: { type: String },
+    worker_ids: [ { type: String } ]
+  }, {
+    versionKey: false,
+    additionalProperties: false
+  })
+}
 
 const url = 'mongodb://localhost:27017/paw'
-let Person = null
+const model = {}
 
 mongoose.connect(url)
 .then(conn => {
-    console.log(`Connection to ${url} established`)
+    console.log(`Połączenie z ${url} zestawione`)
     auth.init(conn)
-    Person = conn.model('Person', schema)
+    for(const schemaKey in schema) {
+      model[schemaKey] = conn.model(schemaKey, schema[schemaKey])
+    }
 })
 .catch(err => {
-    console.error(`Connection to ${url} cannot be established`)
+    console.error(`Połączenie z ${url} nie może być zestawione: ${err.message}`)
     process.exit(0)
 })
 
 module.exports = {
-  savePerson(res, input) {
-    const person = new Person(input)
-    const err = person.validateSync()
+  save(modelKey, res, input) {
+    const obj = new model[modelKey](input)
+    const err = obj.validateSync()
     if(err) {
       res.status(400).json({ error: err.message })
       return
     }
-    person.save().then(newPerson => {
-      res.json(newPerson)
+    obj.save().then(newObj => {
+      res.json(newObj)
     }).catch(err => {
       res.status(400).json({ error: err.errmsg })
     })
   },
-  modifyPerson(res, input) {
+  modify(modelKey, res, input) {
     const _id = input._id
     delete input._id
-    Person.findOneAndUpdate({ _id }, { $set: input }, { runValidators: true, new: true }).then(updatedPerson => {
-      res.json(updatedPerson)
+    model[modelKey].findOneAndUpdate({ _id }, { $set: input }, { runValidators: true, new: true }).then(updatedObj => {
+      res.json(updatedObj)
     }).catch(err => {
       res.status(400).json({ error: err.message })
     })
   },
-  removePerson(res, _id) {
-    Person.findOneAndDelete({ _id }).then(deletedPerson => {
-      res.json(deletedPerson)
+  remove(modelKey, res, _id) {
+    model[modelKey].findOneAndDelete({ _id }).then(deletedObj => {
+      res.json(deletedObj)
     }).catch(err => {
       res.status(400).json({ error: err.message })
     })
   },
-  getPersons(res, filter, order, skip, limit) {
-    Person.aggregate([
+  get(modelKey, res, matching, order, skip, limit) {
+    model[modelKey].aggregate([
       {
-        '$match': { 
-          $or: [
-            { firstName: { $regex: filter } },
-            { lastName: { $regex: filter } }
-          ]
-        }  
+        '$match': matching  
       }, {
         '$facet': {
           count: [ { $count: 'count' } ],
@@ -97,7 +115,7 @@ module.exports = {
       const result = facet[0]
       result.count = result.count[0].count
       result.data = result.data.map(item => {
-        const newItem = new Person(item).toObject()
+        const newItem = new model[modelKey](item).toObject()
         return newItem
       })
       res.json(result)
