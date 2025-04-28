@@ -56,6 +56,13 @@ app.delete('/api/person', auth.checkIfInRole([ 0 ]), (req, res) => {
     db.remove('person', res, req.query._id)
 })
 
+app.get('/api/project', auth.checkIfInRole([ 0, 1 ]), (req, res) => {
+    const filter = req.query.filter || ''
+    db.get('project', req, res, { 
+            name: { $regex: filter } 
+        })
+})
+
 app.listen(config.port, () => {
     console.log('Backend słucha na porcie', config.port)
 })

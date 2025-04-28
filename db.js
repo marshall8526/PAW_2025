@@ -50,6 +50,13 @@ const schema = {
 const url = 'mongodb://localhost:27017/paw'
 const model = {}
 
+const extraAggr = {
+  project: [
+    { $lookup: { from: 'people', localField: 'manager_id', foreignField: '_id', as: 'manager' } },
+    { $lookup: { from: 'people', localField: 'worker_ids', foreignField: '_id', as: 'workers' } }
+  ]
+}
+
 mongoose.connect(url)
 .then(conn => {
     console.log(`Połączenie z ${url} zestawione`)
@@ -94,30 +101,30 @@ const db = module.exports = {
     })
   },
   retrieve(modelKey, res, matching, order, skip, limit) {
+    const data = [
+      {
+        '$sort': order
+      }, {
+        '$skip': skip
+      }, {
+        '$limit': limit
+      }
+    ]
+    if(extraAggr[modelKey]) {
+      data.unshift(...extraAggr[modelKey])
+    }
     model[modelKey].aggregate([
       {
         '$match': matching  
       }, {
         '$facet': {
           count: [ { $count: 'count' } ],
-          data: [
-            {
-              '$sort': order
-            }, {
-              '$skip': skip
-            }, {
-              '$limit': limit
-            }
-          ]
+          data 
         }
       }, 
     ]).then(facet => {
       const result = facet[0]
       result.count = result.count[0].count
-      result.data = result.data.map(item => {
-        const newItem = new model[modelKey](item).toObject()
-        return newItem
-      })
       res.json(result)
     }).catch(err => {
       res.status(400).json({ error: err.message })
