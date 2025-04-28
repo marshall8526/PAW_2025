@@ -36,22 +36,12 @@ app.use(express.static(config.frontend))
 
 app.get('/api/person', auth.checkIfInRole([ 0, 1 ]), (req, res) => {
     const filter = req.query.filter || ''
-    const order = { created: 1 }
-    if(req.query.sort) {
-        delete order.created
-        order[req.query.sort] = req.query.order == 'desc' ? -1 : 1
-    }
-    let skip = +req.query.skip || 0
-    if(skip < 0) skip = 0
-    let limit = +req.query.limit
-    if(!limit || limit < 0 || limit > 1000) limit = 1000
-    const matching = { 
-    $or: [
-        { firstName: { $regex: filter } },
-        { lastName: { $regex: filter } }
-      ]
-    }
-    db.get('person', res, matching, order, skip, limit)
+    db.get('person', req, res, { 
+        $or: [
+            { firstName: { $regex: filter } },
+            { lastName: { $regex: filter } }
+          ]
+        })
 })
 
 app.post('/api/person', auth.checkIfInRole([ 0 ]), (req, res) => {

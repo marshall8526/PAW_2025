@@ -63,7 +63,7 @@ mongoose.connect(url)
     process.exit(0)
 })
 
-module.exports = {
+const db = module.exports = {
   save(modelKey, res, input) {
     const obj = new model[modelKey](input)
     const err = obj.validateSync()
@@ -93,7 +93,7 @@ module.exports = {
       res.status(400).json({ error: err.message })
     })
   },
-  get(modelKey, res, matching, order, skip, limit) {
+  retrieve(modelKey, res, matching, order, skip, limit) {
     model[modelKey].aggregate([
       {
         '$match': matching  
@@ -122,5 +122,17 @@ module.exports = {
     }).catch(err => {
       res.status(400).json({ error: err.message })
     })
+  },
+  get(modelKey, req, res, matching) {
+      const order = { created: 1 }
+      if(req.query.sort) {
+          delete order.created
+          order[req.query.sort] = req.query.order == 'desc' ? -1 : 1
+      }
+      let skip = +req.query.skip || 0
+      if(skip < 0) skip = 0
+      let limit = +req.query.limit
+      if(!limit || limit < 0 || limit > 1000) limit = 1000
+      db.retrieve(modelKey, res, matching, order, skip, limit)
   }
 }
