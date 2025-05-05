@@ -56,7 +56,7 @@ app.delete('/api/person', auth.checkIfInRole([ 0 ]), (req, res) => {
     db.remove('person', res, req.query._id)
 })
 
-app.get('/api/project', auth.checkIfInRole([ 0, 1 ]), (req, res) => {
+app.get('/api/project', (req, res) => {
     const filter = req.query.filter || ''
     db.get('project', req, res, { 
             name: { $regex: filter } 

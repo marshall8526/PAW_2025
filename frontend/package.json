@@ -10,7 +10,9 @@
   },
   "dependencies": {
     "@mdi/font": "^7.4.47",
+    "echarts": "^5.6.0",
     "vue": "^3.4.29",
+    "vue-echarts": "^7.0.3",
     "vue-router": "^4.5.0",
     "vuetify": "^3.7.14"
   },
