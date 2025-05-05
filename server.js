@@ -63,6 +63,18 @@ app.get('/api/project', auth.checkIfInRole([ 0, 1 ]), (req, res) => {
         })
 })
 
+app.post('/api/project', auth.checkIfInRole([ 0 ]), (req, res) => {
+    db.save('project', res, req.body)
+})
+
+app.put('/api/project', auth.checkIfInRole([ 0 ]), (req, res) => {
+    db.modify('project', res, req.body)
+})
+
+app.delete('/api/project', auth.checkIfInRole([ 0 ]), (req, res) => {
+    db.remove('project', res, req.query._id)
+})
+
 app.listen(config.port, () => {
     console.log('Backend słucha na porcie', config.port)
 })

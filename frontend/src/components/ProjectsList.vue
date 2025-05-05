@@ -1,17 +1,16 @@
 <script>
     import common from '../mixins/common.js'
-    import PersonEditor from './PersonEditor.vue'
+    import ProjectEditor from './ProjectEditor.vue'
 
     export default {
-        components: { PersonEditor },
+        components: { ProjectEditor },
         emits: [ 'saved', 'error' ],
         props: [ 'session' ],
         mixins: [ common ],
         data() {
             return {
-                persons: {},
-                person: {},
-                showPersonEditor: false,
+                project: {},
+                showProjectEditor: false,
                 itemsPerPage: 10,
                 headers: [
                         { title: 'Nazwa', key: 'name', align: 'start', sortable: true },
@@ -48,21 +47,21 @@
             },
             clickItem(_, data) {
                 if(!this.checkIfInRole(this.session, [ 0 ])) return
-                Object.assign(this.person, data.item)
-                this.showPersonEditor = true
+                Object.assign(this.project, data.item)
+                this.showProjectEditor = true
             },
             saved() {
-                this.showPersonEditor = false
+                this.showProjectEditor = false
                 this.tableKey++
                 this.$emit('saved', 'Wykonano')
             },
             notsaved(data) {
-                this.showPersonEditor = false
+                this.showProjectEditor = false
                 this.$emit('error', data)
             },
-            newPerson() {
-                this.person = {}
-                this.showPersonEditor = true
+            newProject() {
+                this.project = {}
+                this.showProjectEditor = true
             }
         }
     }
@@ -71,16 +70,13 @@
 <template>
     <v-card variant="outlined">
         <v-card-title class="d-flex">
-            <v-btn variant="elevated" color="primary" @click="newPerson" v-if="checkIfInRole(session, [ 0 ])">Nowa osoba</v-btn>
+            <v-btn variant="elevated" color="primary" @click="newProject" v-if="checkIfInRole(session, [ 0 ])">Nowy projekt</v-btn>
         </v-card-title>
         <v-card-text>
             <v-data-table-server v-model:items-per-page="itemsPerPage" :headers="headers" :items="serverItems"
                 :items-length="itemsLength" :loading="loading" :search="search" :key="tableKey"
                 @update:options="loadItems" @click:row="clickItem"
                 itemsPerPageText="# elementów na stronie" pageText="{0}-{1} z {2}" density="compact">
-                <template #item.birthDate="{ item }">
-                    {{ new Date(item.birthDate).toLocaleDateString() }}
-                </template>
                 <template #footer.prepend>
                     <v-text-field v-model="search" class="mr-5" variant="outlined" density="compact" placeholder="szukaj..."
                         hide-details prepend-icon="mdi-magnify"></v-text-field>                   
@@ -89,8 +85,8 @@
         </v-card-text>
     </v-card>
 
-    <v-dialog v-model="showPersonEditor">
-        <PersonEditor :person="person" @cancel="showPersonEditor = false" @ok="saved" @error="notsaved"/>
+    <v-dialog v-model="showProjectEditor">
+        <ProjectEditor :project="project" @cancel="showProjectEditor = false" @ok="saved" @error="notsaved"/>
     </v-dialog>
 </template>
 
