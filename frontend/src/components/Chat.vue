@@ -14,7 +14,9 @@ export default {
         }
     },
     methods: {
-        send() {}
+        send() {
+            this.session.ws.send(JSON.stringify({ sessionid: this.session.sessionid, message: this.input.message }))
+        }
     }
 }
 </script>
@@ -33,7 +35,7 @@ export default {
             <v-col>
             <v-text-field variant="solo" label="Wiadomość" v-model="input.message">
                 <template #append-inner>
-                    <v-btn variant="elevated" color="success" @click="send" type="submit" :disabled="!input.recipient || !input.message">Wyślij</v-btn>
+                    <v-btn variant="elevated" color="success" @click="send" type="submit" :disabled="!input.message">Wyślij</v-btn>
                 </template>
             </v-text-field>
             </v-col>

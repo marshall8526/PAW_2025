@@ -86,18 +86,20 @@ app.ws('/ws', (ws, req) => {
             console.error(err.message, rawData)
             return
         }
-        console.log(data)
-        if(data.user) {
-            ws.user = data.user
-            return
-        }
-        wsInstance.getWss().clients.forEach(client => {
-            try {
-                if(client.user == data.to) {
+        console.log('Z websocketu:', data)
+        req.sessionStore.all((err, sessions) => {
+            if(err) {
+                console.error('Błąd w analizie sessionStore')
+                return
+            }
+            for(const sessionID in sessions) {
+                console.log(sessionID, sessions[sessionID].passport ? sessions[sessionID].passport.user : 'niezalogowany')
+            }
+            wsInstance.getWss().clients.forEach(client => {
+                try {
                     client.send(JSON.stringify(data))
-                    console.log('Message was sent to', data.to)
-                }
-            } catch(err) {}
+                } catch(err) {}
+            })    
         })
     })
 })

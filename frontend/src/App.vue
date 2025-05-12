@@ -53,19 +53,17 @@
             this.session = data
             try {
               this.session.ws = new WebSocket('ws://' + window.location.host + '/ws')
-              this.session.ws.onopen = () => {
-                console.log('Connected by ws')
-              }
+              this.session.ws.onopen = () => {}
               this.session.ws.onmessage = event => {
                 let data = {}
                 try { data = JSON.parse(event.data) } catch(err) {
-                  console.error(err.message, event.data)
+                  this.error(err.message)
                   return
                 }
                 console.log(data)
               }
             } catch(err) {
-              console.error(err)
+              this.error(err.message)
             }
           })).catch(err => { this.error('Uszkodzona odpowiedź z backendu', -1) })
         .catch(err => {
