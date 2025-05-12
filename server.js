@@ -93,13 +93,12 @@ app.ws('/ws', (ws, req) => {
                 console.error('Błąd w analizie sessionStore')
                 return
             }
-            for(const sessionID in sessions) {
-                console.log(sessionID, sessions[sessionID].passport ? sessions[sessionID].passport.user : 'niezalogowany')
-            }
             wsInstance.getWss().clients.forEach(client => {
                 try {
-                    console.log('---', client.sessionID)
-                    client.send(JSON.stringify(data))
+                    const username = sessions[client.sessionID].passport ? sessions[client.sessionID].passport.user : null
+                    if(username == data.recipient) {
+                      client.send(JSON.stringify(data))
+                    }
                 } catch(err) {}
             })    
         })

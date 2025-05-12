@@ -15,7 +15,7 @@ export default {
     },
     methods: {
         send() {
-            this.session.ws.send(JSON.stringify({ sessionid: this.session.sessionid, message: this.input.message }))
+            this.session.ws.send(JSON.stringify({ sessionid: this.session.sessionid, ...this.input }))
         }
     }
 }
