@@ -20,7 +20,7 @@ export default {
 </script>
 
 <template>
-    <v-card variant="none">
+    <v-card variant="flat">
         <v-card-text>
             <i>wiadomości...</i>
         </v-card-text>
