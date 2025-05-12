@@ -5,18 +5,20 @@
   import Dashboard from './components/Dashboard.vue'
   import PersonsList from './components/PersonsList.vue'
   import ProjectsList from './components/ProjectsList.vue'
-  import Analysis from './components/Analysis.vue'    
+  import Analysis from './components/Analysis.vue'   
+  import Chat from './components/Chat.vue' 
 
   export const routes = [
     { path: '/', component: Dashboard, title: 'Pulpit', icon: 'mdi-home' },
     { path: '/persons', component: PersonsList, title: 'Osoby', icon: 'mdi-account-multiple-outline', roles: [ 0, 1 ] },
     { path: '/projects', component: ProjectsList, title: 'Projekty', icon: 'mdi-projector' },
-    { path: '/analysis', component: Analysis, title: 'Analiza', icon: 'mdi-chart-line' }
+    { path: '/analysis', component: Analysis, title: 'Analiza', icon: 'mdi-chart-line' },
+    { path: '/chat', component: Chat, title: 'Czat', icon: 'mdi-message-text-outline', roles: [ 0, 1 ] }
   ]
 
   export default {
     mixins: [ common ],
-    components: { LoginDialog, LogoutDialog, Dashboard, PersonsList, ProjectsList, Analysis },
+    components: { LoginDialog, LogoutDialog, Dashboard, PersonsList, ProjectsList, Analysis, Chat },
     data() {
       return {
         routes,
@@ -48,11 +50,26 @@
         .then(res => res.json()
           .then(data => { 
             this.operational = true
-            this.session = data 
-          })
-          .catch(err => { this.error('Uszkodzona odpowiedź z backendu', -1) }))
+            this.session = data
+            try {
+              this.session.ws = new WebSocket('ws://' + window.location.host + '/ws')
+              this.session.ws.onopen = () => {
+                console.log('Connected by ws')
+              }
+              this.session.ws.onmessage = event => {
+                let data = {}
+                try { data = JSON.parse(event.data) } catch(err) {
+                  console.error(err.message, event.data)
+                  return
+                }
+                console.log(data)
+              }
+            } catch(err) {
+              console.error(err)
+            }
+          })).catch(err => { this.error('Uszkodzona odpowiedź z backendu', -1) })
         .catch(err => {
-        this.error(err.message, -1)
+          this.error(err.message, -1)
       })},
       onLogin() {
         this.loginDialog = false

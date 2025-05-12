@@ -5,6 +5,7 @@ const morgan = require('morgan')
 const expressSession = require('express-session')
 const passport = require('passport')
 const passportJson = require('passport-json')
+const expressWs = require('express-ws')
 
 const db = require('./db')
 const auth = require('./auth')
@@ -73,6 +74,32 @@ app.put('/api/project', auth.checkIfInRole([ 0 ]), (req, res) => {
 
 app.delete('/api/project', auth.checkIfInRole([ 0 ]), (req, res) => {
     db.remove('project', res, req.query._id)
+})
+
+const wsInstance = expressWs(app)
+app.ws('/ws', (ws, req) => {
+    ws.on('message', rawData => {
+        let data = {}
+        try {
+            data = JSON.parse(rawData)
+        } catch(err) {
+            console.error(err.message, rawData)
+            return
+        }
+        console.log(data)
+        if(data.user) {
+            ws.user = data.user
+            return
+        }
+        wsInstance.getWss().clients.forEach(client => {
+            try {
+                if(client.user == data.to) {
+                    client.send(JSON.stringify(data))
+                    console.log('Message was sent to', data.to)
+                }
+            } catch(err) {}
+        })
+    })
 })
 
 app.listen(config.port, () => {
