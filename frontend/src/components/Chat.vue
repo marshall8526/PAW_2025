@@ -5,7 +5,7 @@ export default {
     data() {
         return {
             isValid: false,
-            input: { username: '',recipient: '', message: '' },
+            input: { recipient: '', message: '' },
             rules: {
                 required: value => {
                     return value.length > 0 || 'Pole wymagane'
@@ -30,12 +30,12 @@ export default {
           <v-form v-model="isValid" style="width: 100%;">
             <v-row>
             <v-col cols="4">
-                <i>odbiorca...</i>
+                <v-text-field variant="outlined" label="Odbiorca" v-model="input.recipient" :rules="[ rules.required ]"></v-text-field>    
             </v-col>
             <v-col>
-            <v-text-field variant="solo" label="Wiadomość" v-model="input.message">
+            <v-text-field variant="outlined" label="Wiadomość" v-model="input.message">
                 <template #append-inner>
-                    <v-btn variant="elevated" color="success" @click="send" type="submit" :disabled="!input.message">Wyślij</v-btn>
+                    <v-btn variant="elevated" color="success" @click="send" type="submit" :disabled="!isValid">Wyślij</v-btn>
                 </template>
             </v-text-field>
             </v-col>

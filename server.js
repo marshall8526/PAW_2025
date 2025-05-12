@@ -87,6 +87,7 @@ app.ws('/ws', (ws, req) => {
             return
         }
         console.log('Z websocketu:', data)
+        ws.sessionID = req.sessionID
         req.sessionStore.all((err, sessions) => {
             if(err) {
                 console.error('Błąd w analizie sessionStore')
@@ -97,6 +98,7 @@ app.ws('/ws', (ws, req) => {
             }
             wsInstance.getWss().clients.forEach(client => {
                 try {
+                    console.log('---', client.sessionID)
                     client.send(JSON.stringify(data))
                 } catch(err) {}
             })    
