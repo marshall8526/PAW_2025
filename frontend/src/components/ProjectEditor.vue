@@ -109,7 +109,7 @@
             :items="personItems" :item-title="item => item.firstName + ' ' + item.lastName" item-value="_id"
         ></v-autocomplete>
         <v-autocomplete variant="outlined" v-model="input.worker_ids"
-            chips closable-chips label="Workers" multiple
+            chips closable-chips label="Pracownicy" multiple
             :items="personItems" :item-title="item => item.firstName + ' ' + item.lastName" item-value="_id"
         ></v-autocomplete>
         <VMap ref="vmap" style="height: 200px;" :center="center" zoom="15" @click="setMarker">

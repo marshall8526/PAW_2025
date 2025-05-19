@@ -44,8 +44,8 @@ export default {
       .then(result => { 
         this.markers = result.data.map(project => ({
           title: project.name,
-          lat: project.coords.lat || defaultCoords.lat,
-          lng: project.coords.lng || defaultCoords.lng
+          lat: !(project.coords && project.coords.lat) ? defaultCoords.lat : project.coords.lat,
+          lng: !(project.coords && project.coords.lng) ? defaultCoords.lng : project.coords.lng
         }))
         if(this.markers.length) {
           this.center = this.markers[0]
