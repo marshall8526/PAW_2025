@@ -5,7 +5,7 @@
   import 'vue-map-ui/dist/style.css'
   import 'vue-map-ui/dist/theme-all.css'
 
-  import { VMap, VMapGoogleTileLayer, VMapZoomControl, VMapIconMarker } from 'vue-map-ui'
+  import { VMap, VMapOsmTileLayer, VMapZoomControl, VMapIconMarker } from 'vue-map-ui'
 
   import markerIconUrl from 'leaflet/dist/images/marker-icon.png'
   import markerIconRetinaUrl from 'leaflet/dist/images/marker-icon-2x.png'
@@ -16,7 +16,7 @@
   export default {
     emits: [ 'ok', 'cancel', 'error' ],
     props: [ 'project' ],
-    components: { VMap, VMapGoogleTileLayer, VMapZoomControl, VMapIconMarker },
+    components: { VMap, VMapOsmTileLayer, VMapZoomControl, VMapIconMarker },
     data() {
         return {
             markerIconUrl, markerIconRetinaUrl, markerShadowUrl,
@@ -121,7 +121,7 @@
               :icon-anchor="[17, 46]"
               draggable
             ></VMapIconMarker>
-            <VMapGoogleTileLayer/>
+            <VMapOsmTileLayer/>
             <VMapZoomControl/>
           </VMap>
       </v-card-text>

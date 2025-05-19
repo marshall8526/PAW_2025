@@ -7,18 +7,20 @@
   import ProjectsList from './components/ProjectsList.vue'
   import Analysis from './components/Analysis.vue'   
   import Chat from './components/Chat.vue' 
+  import ProjectsMap from './components/ProjectsMap.vue'
 
   export const routes = [
     { path: '/', component: Dashboard, title: 'Pulpit', icon: 'mdi-home' },
     { path: '/persons', component: PersonsList, title: 'Osoby', icon: 'mdi-account-multiple-outline', roles: [ 0, 1 ] },
     { path: '/projects', component: ProjectsList, title: 'Projekty', icon: 'mdi-projector' },
+    { path: '/map', component: ProjectsMap, title: 'Mapa', icon: 'mdi-map' },
     { path: '/analysis', component: Analysis, title: 'Analiza', icon: 'mdi-chart-line' },
     { path: '/chat', component: Chat, title: 'Czat', icon: 'mdi-message-text-outline', roles: [ 0, 1 ] }
   ]
 
   export default {
     mixins: [ common ],
-    components: { LoginDialog, LogoutDialog, Dashboard, PersonsList, ProjectsList, Analysis, Chat },
+    components: { LoginDialog, LogoutDialog, Dashboard, PersonsList, ProjectsList, ProjectsMap, Analysis, Chat },
     data() {
       return {
         routes,
