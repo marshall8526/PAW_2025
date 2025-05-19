@@ -1,10 +1,27 @@
 <script>
+
+  import 'leaflet/dist/leaflet.css'
+  import 'vue-map-ui/dist/normalize.css'
+  import 'vue-map-ui/dist/style.css'
+  import 'vue-map-ui/dist/theme-all.css'
+
+  import { VMap, VMapGoogleTileLayer, VMapZoomControl, VMapIconMarker } from 'vue-map-ui'
+
+  import markerIconUrl from 'leaflet/dist/images/marker-icon.png'
+  import markerIconRetinaUrl from 'leaflet/dist/images/marker-icon-2x.png'
+  import markerShadowUrl from 'leaflet/dist/images/marker-shadow.png'
+
+  const defaultCoords = { lat: 52.2297, lng: 21.0122 }  
+
   export default {
     emits: [ 'ok', 'cancel', 'error' ],
     props: [ 'project' ],
+    components: { VMap, VMapGoogleTileLayer, VMapZoomControl, VMapIconMarker },
     data() {
         return {
-            input: { name: '', manager_id: null, worker_ids: [] },
+            markerIconUrl, markerIconRetinaUrl, markerShadowUrl,
+            center: {},
+            input: {},
             personItems: []
         }
     },
@@ -46,6 +63,9 @@
                   this.$emit('ok')
                 }
             }))
+        },
+        setMarker(event) {
+          this.input.coords = event.latlng
         }
     },
     mounted() {
@@ -55,6 +75,13 @@
           this.personItems = result.data
       }))
       Object.assign(this.input, this.project)
+      this.input.coords = {}
+      if(!this.project.coords || !this.project.coords.lat || !this.project.coords.lng) {
+        Object.assign(this.input.coords, defaultCoords) 
+      } else {
+        Object.assign(this.input.coords, this.project.coords)
+      }
+      Object.assign(this.center, this.input.coords)
     }
   }
 </script>
@@ -85,6 +112,18 @@
             chips closable-chips label="Workers" multiple
             :items="personItems" :item-title="item => item.firstName + ' ' + item.lastName" item-value="_id"
         ></v-autocomplete>
+        <VMap ref="vmap" style="height: 200px;" :center="center" zoom="15" @click="setMarker">
+            <VMapIconMarker ref="vmarker" v-model:latlng="input.coords"
+              :icon-url="markerIconUrl"
+              :icon-retina-url="markerIconRetinaUrl"
+              :icon-shadow-url="markerShadowUrl"
+              :icon-size="[28, 46]"
+              :icon-anchor="[17, 46]"
+              draggable
+            ></VMapIconMarker>
+            <VMapGoogleTileLayer/>
+            <VMapZoomControl/>
+          </VMap>
       </v-card-text>
       <v-card-actions>
         <v-spacer></v-spacer>

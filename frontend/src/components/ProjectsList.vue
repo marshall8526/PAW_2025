@@ -47,7 +47,7 @@
             },
             clickItem(_, data) {
                 if(!this.checkIfInRole(this.session, [ 0 ])) return
-                Object.assign(this.project, data.item)
+                this.project = data.item
                 this.showProjectEditor = true
             },
             saved() {

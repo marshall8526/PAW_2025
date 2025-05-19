@@ -40,7 +40,11 @@ const schema = {
       }
     },
     manager_id: { type: String },
-    worker_ids: [ { type: String } ]
+    worker_ids: [ { type: String } ],
+    coords: {
+      lat: { type: Number, required: false },
+      lng: { type: Number, required: false }
+    }  
   }, {
     versionKey: false,
     additionalProperties: false
