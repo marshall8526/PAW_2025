@@ -9,6 +9,7 @@ const expressWs = require('express-ws')
 
 const db = require('./db')
 const auth = require('./auth')
+const admin = require('./admin')
 
 const config = {
     port: 8000,
@@ -32,6 +33,9 @@ const authEndpoint = '/api/auth'
 app.get(authEndpoint, auth.whoami)
 app.post(authEndpoint, passport.authenticate('json', { failWithError: true }), auth.login, auth.errorHandler)
 app.delete(authEndpoint, auth.logout)
+const wsInstance = expressWs(app)
+const adminEndpoint = '/api/admin/:what'
+app.use(adminEndpoint, auth.checkIfInRole([ 0 ]), admin(wsInstance))
 
 app.use(express.static(config.frontend))
 
@@ -76,7 +80,6 @@ app.delete('/api/project', auth.checkIfInRole([ 0 ]), (req, res) => {
     db.remove('project', res, req.query._id)
 })
 
-const wsInstance = expressWs(app)
 app.ws('/ws', (ws, req) => {
     ws.on('message', rawData => {
         let data = {}

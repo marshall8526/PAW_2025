@@ -54,6 +54,10 @@ const auth = module.exports = {
             })
     },
 
+    getUsers: (req, res) => {
+        auth.User.find({}, { password: 0 }).then(users => res.json(users))
+    },
+
     checkCredentials: (username, password, nextTick) => {
         auth.User.findOne({ username, password: makeHash(password) })
         .then(user => nextTick(null, user || false))
