@@ -5,9 +5,9 @@ const morgan = require('morgan')
 const expressSession = require('express-session')
 const passport = require('passport')
 const passportJson = require('passport-json')
-const expressWs = require('express-ws')
 
 const db = require('./db')
+const ws = require('./ws')
 const auth = require('./auth')
 const admin = require('./admin')
 
@@ -33,9 +33,8 @@ const authEndpoint = '/api/auth'
 app.get(authEndpoint, auth.whoami)
 app.post(authEndpoint, passport.authenticate('json', { failWithError: true }), auth.login, auth.errorHandler)
 app.delete(authEndpoint, auth.logout)
-const wsInstance = expressWs(app)
 const adminEndpoint = '/api/admin/:what'
-app.use(adminEndpoint, auth.checkIfInRole([ 0 ]), admin(wsInstance))
+app.use(adminEndpoint, auth.checkIfInRole([ 0 ]), admin)
 
 app.use(express.static(config.frontend))
 
@@ -80,33 +79,8 @@ app.delete('/api/project', auth.checkIfInRole([ 0 ]), (req, res) => {
     db.remove('project', res, req.query._id)
 })
 
-app.ws('/ws', (ws, req) => {
-    ws.on('message', rawData => {
-        let data = {}
-        try {
-            data = JSON.parse(rawData)
-        } catch(err) {
-            console.error(err.message, rawData)
-            return
-        }
-        console.log('Z websocketu:', data)
-        ws.sessionID = req.sessionID
-        req.sessionStore.all((err, sessions) => {
-            if(err) {
-                console.error('Błąd w analizie sessionStore')
-                return
-            }
-            wsInstance.getWss().clients.forEach(client => {
-                try {
-                    const username = sessions[client.sessionID].passport ? sessions[client.sessionID].passport.user : null
-                    if(username == data.recipient) {
-                      client.send(JSON.stringify(data))
-                    }
-                } catch(err) {}
-            })    
-        })
-    })
-})
+ws.init(app)
+app.ws('/ws', ws.handler)
 
 app.listen(config.port, () => {
     console.log('Backend słucha na porcie', config.port)

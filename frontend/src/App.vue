@@ -8,6 +8,7 @@
   import ProjectsMap from './components/ProjectsMap.vue'
   import Analysis from './components/Analysis.vue'   
   import Chat from './components/Chat.vue' 
+  import Admin from './components/Admin.vue'
   
   export const routes = [
     { path: '/', component: Dashboard, title: 'Pulpit', icon: 'mdi-home' },
@@ -15,12 +16,13 @@
     { path: '/projects', component: ProjectsList, title: 'Projekty', icon: 'mdi-projector' },
     { path: '/map', component: ProjectsMap, title: 'Mapa', icon: 'mdi-map' },
     { path: '/analysis', component: Analysis, title: 'Analiza', icon: 'mdi-chart-line' },
-    { path: '/chat', component: Chat, title: 'Czat', icon: 'mdi-message-text-outline', roles: [ 0, 1 ] }
+    { path: '/chat', component: Chat, title: 'Czat', icon: 'mdi-message-text-outline', roles: [ 0, 1 ] },
+    { path: '/admin', component: Admin, title: 'Admin', icon: 'mdi-security', roles: [ 0 ] }
   ]
 
   export default {
     mixins: [ common ],
-    components: { LoginDialog, LogoutDialog, Dashboard, PersonsList, ProjectsList, ProjectsMap, Analysis, Chat },
+    components: { LoginDialog, LogoutDialog, Dashboard, PersonsList, ProjectsList, ProjectsMap, Analysis, Chat, Admin },
     data() {
       return {
         routes,
