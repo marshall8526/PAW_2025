@@ -8,30 +8,38 @@ const ws = module.exports = {
         wsInstance = expressWs(app)
     },
     getClients: () => wsInstance.getWss().clients,
-    handler: (wsock, req) => {
-        wsock.on('message', rawData => {
+    handler: async (wsock, req) => {
+        wsock.on('message', async rawData => {
             let data = {}
             try {
                 data = JSON.parse(rawData)
-            } catch(err) {
+            } catch (err) {
                 console.error(err.message, rawData)
                 return
             }
+
             wsock.sessionID = req.sessionID
-            req.sessionStore.all((err, sessions) => {
-                if(err) {
-                    console.error('Błąd w analizie sessionStore')
-                    return
-                }
+
+            try {
+                const sessions = await new Promise((resolve, reject) => {
+                    req.sessionStore.all((err, sessions) => {
+                        if (err) return reject(err)
+                        resolve(sessions)
+                    })
+                })
+
                 ws.getClients().forEach(client => {
                     try {
-                        const username = sessions[client.sessionID].passport ? sessions[client.sessionID].passport.user : null
-                        if(username == data.recipient) {
+                        const username = sessions[client.sessionID]?.passport?.user || null
+                        if (username == data.recipient) {
                             client.send(JSON.stringify(data))
                         }
-                    } catch(err) {}
-                })    
-            })
+                    } catch (_) { }
+                })
+
+            } catch (err) {
+                console.error('Błąd w analizie sessionStore:', err)
+            }
         })
     }
 }

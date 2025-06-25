@@ -1,5 +1,6 @@
 const uuid = require('uuid')
 const mongoose = require('mongoose')
+require('dotenv').config()
 
 const auth = require('./auth')
 
@@ -51,7 +52,6 @@ const schema = {
   })
 }
 
-const url = 'mongodb://localhost:27017/paw'
 const model = {}
 
 const extraAggr = {
@@ -61,9 +61,10 @@ const extraAggr = {
   ]
 }
 
+const url = process.env.MDB_URL
 mongoose.connect(url)
 .then(conn => {
-    console.log(`Połączenie z ${url} zestawione`)
+    console.log(`Połączenie z ${url.split('/')[3]} zestawione`)
     auth.init(conn)
     for(const schemaKey in schema) {
       model[schemaKey] = conn.model(schemaKey, schema[schemaKey])
@@ -128,7 +129,7 @@ const db = module.exports = {
       }, 
     ]).then(facet => {
       const result = facet[0]
-      result.count = result.count[0].count
+      result.count = result.count[0]?.count || 0
       res.json(result)
     }).catch(err => {
       res.status(400).json({ error: err.message })
