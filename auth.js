@@ -23,45 +23,48 @@ const auth = module.exports = {
     makeHash,
     User: null,
 
-    init: conn => {
-
+    init: async conn => {
         auth.User = conn.model('user', schema)
 
-        // create user admin if it does not exist
-        auth.User.findOne({ username: 'admin' })
-            .then(user => {
-                if (!user) {
-                    const admin = new auth.User({ username: 'admin', password: makeHash('admin'), roles: [0] })
-                    admin.save()
-                    console.log('User admin created')
-                }
-            })
-            .catch(err => {
-                console.error(err.message)
-            })
+        try {
+            const user1 = await auth.User.findOne({ username: 'admin' })
+            if (!user1) {
+                const admin = new auth.User({ username: 'admin', password: makeHash('admin'), roles: [0] })
+                await admin.save()
+                console.log('User admin created')
+            }
+        } catch (err) {
+            console.error(err.message)
+        }
 
-        // create user user if it does not exist
-        auth.User.findOne({ username: 'user' })
-            .then(user => {
-                if (!user) {
-                    const admin = new auth.User({ username: 'user', password: makeHash('user'), roles: [1] })
-                    admin.save()
-                    console.log('User user created')
-                }
-            })
-            .catch(err => {
-                console.error(err.message)
-            })
+        try {
+            const user2 = await auth.User.findOne({ username: 'user' })
+            if (!user2) {
+                const user = new auth.User({ username: 'user', password: makeHash('user'), roles: [1] })
+                await user.save()
+                console.log('User user created')
+            }
+        } catch (err) {
+            console.error(err.message)
+        }
     },
 
-    getUsers: (req, res) => {
-        auth.User.find({}, { password: 0 }).then(users => res.json(users))
+    getUsers: async (req, res) => {
+        try {
+            const users = await auth.User.find({}, { password: 0 })
+            res.json(users)
+        } catch (err) {
+            res.status(500).json({ error: err.message })
+        }
     },
 
-    checkCredentials: (username, password, next) => {
-        auth.User.findOne({ username, password: makeHash(password) })
-            .then(user => next(null, user || false))
-            .catch(err => next(null, false))
+    checkCredentials: async (username, password, next) => {
+        try {
+            const user = await auth.User.findOne({ username, password: makeHash(password) })
+            next(null, user || false)
+        } catch (_) {
+            next(null, false)
+        }
     },
 
     checkIfInRole: roleNums => (req, res, next) => {
@@ -77,16 +80,17 @@ const auth = module.exports = {
 
     serialize: (user, next) => next(null, user.username),
 
-    deserialize: (username, next) => {
-        auth.User.findOne({ username })
-            .then(user => {
-                if (user) {
-                    return next(null, user)
-                } else {
-                    return next(new Error('No such user'), null)
-                }
-            })
-            .catch(err => ({ error: err.message }))
+    deserialize: async (username, next) => {
+        try {
+            const user = await auth.User.findOne({ username })
+            if (user) {
+                next(null, user)
+            } else {
+                next(new Error('No such user'), null)
+            }
+        } catch (err) {
+            next(new Error(err.message), null)
+        }
     },
 
     login: (req, res) => auth.whoami(req, res),
