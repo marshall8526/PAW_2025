@@ -43,6 +43,24 @@ const schema = {
   }, {
     versionKey: false,
     additionalProperties: false
+  }),
+  task: new mongoose.Schema({
+    _id: { type: String, default: uuid.v4 },
+    name: {
+      type: String,
+      required: true,
+      validate: {
+        validator: v => /^\p{L}/u.test(v),
+        message: props => `${props.value} does not start from a letter`
+      }
+    },
+    start_date: { type: Date, required: true },
+    end_date: { type: Date, required: false },
+    responsible_id: { type: String, required: true },
+    project_ids: [{ type: String, required: true }]
+  }, {
+    versionKey: false,
+    additionalProperties: false
   })
 }
 
@@ -94,6 +112,9 @@ const db = module.exports = {
     delete input._id
     try {
       const updatedObj = await model[modelKey].findOneAndUpdate({ _id }, { $set: input }, { runValidators: true, new: true })
+      if (!updatedObj) {
+        throw new Error("Task not modified!")
+      }
       res.json(updatedObj)
     } catch (err) {
       res.status(400).json({ error: err.message })
@@ -103,6 +124,9 @@ const db = module.exports = {
   async remove(modelKey, res, _id) {
     try {
       const deletedObj = await model[modelKey].findOneAndDelete({ _id })
+      if (!deletedObj) {
+        throw new Error("Task not deleted!")
+      }
       res.json(deletedObj)
     } catch (err) {
       res.status(400).json({ error: err.message })

@@ -27,6 +27,8 @@ passport.use(new passportJson.Strategy(auth.checkCredentials))
 passport.serializeUser(auth.serialize)
 passport.deserializeUser(auth.deserialize)
 
+const taskRouter = require('./task');
+app.use('/api/task', taskRouter)
 
 app.get('/api/auth', auth.whoami)
 app.post('/api/auth', passport.authenticate('json', { failWithError: true }), auth.login, auth.errorHandler)
