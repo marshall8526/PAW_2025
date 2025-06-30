@@ -18,7 +18,6 @@ export default {
         { title: 'Zakończenie', key: 'end_date' },
         { title: 'Odpowiedzialny', key: 'responsibleName' },
         { title: '#projektów', key: 'numProjects' },
-        { title: 'Ukończone', key: 'done' } // нова колонка
       ],
       loading: false,
       search: '',
@@ -44,7 +43,6 @@ export default {
               ? `${el.responsible[0].firstName} ${el.responsible[0].lastName}`
               : '- brak -'
             el.numProjects = el.project_ids?.length || 0
-            el.done = el.end_date && el.end_date !== '' ? '✅' : '❌'
           })
           this.serverItems = result.data
           this.loading = false

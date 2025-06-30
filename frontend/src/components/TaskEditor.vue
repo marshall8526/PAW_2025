@@ -1,4 +1,4 @@
-<script> 
+<script>
 export default {
   emits: ['ok', 'cancel', 'error'],
   props: ['task'],
@@ -50,10 +50,6 @@ export default {
         }
       }
       this.responsibleOptions = this.personItems.filter(p => selectedWorkerIds.has(p._id))
-      // якщо поточний відповідальний не входить — очищаємо
-      if (!this.responsibleOptions.find(p => p._id === this.input.responsible_id)) {
-        this.input.responsible_id = null
-      }
     }
   },
   watch: {
@@ -73,7 +69,8 @@ export default {
       responsible_id: this.task.responsible_id || null,
       project_ids: Array.isArray(this.task.project_ids) ? [...this.task.project_ids] : []
     }
-
+    console.log(this.task);
+    
     try {
       const peopleResponse = await fetch('/api/person?sort=lastName&order=asc')
       const peopleResult = await peopleResponse.json()
@@ -85,6 +82,7 @@ export default {
 
       // тільки після обох запитів
       this.updateResponsibleOptions()
+
     } catch (err) {
       console.error('Błąd ładowania danych:', err)
     }
