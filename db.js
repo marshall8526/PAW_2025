@@ -70,6 +70,9 @@ const extraAggr = {
   project: [
     { $lookup: { from: 'people', localField: 'manager_id', foreignField: '_id', as: 'manager' } },
     { $lookup: { from: 'people', localField: 'worker_ids', foreignField: '_id', as: 'workers' } }
+  ],
+  task: [
+    { $lookup: { from: 'people', localField: 'responsible_id', foreignField: '_id', as: 'responsible' } }
   ]
 }
 
@@ -94,6 +97,8 @@ connectAndInit()
 const db = module.exports = {
   async save(modelKey, res, input) {
     const obj = new model[modelKey](input)
+    console.log(input);
+    
     const err = obj.validateSync()
     if (err) {
       res.status(400).json({ error: err.message })
