@@ -36,9 +36,6 @@ export default {
             fetch('/api/person?' +
                 new URLSearchParams(queryString).toString())
                 .then(res => res.json().then(result => {
-                    if (result.error) {
-                        this.$emit('error', result.error)
-                    }
                     this.itemsLength = result.count
                     this.serverItems = result.data
                     this.loading = false

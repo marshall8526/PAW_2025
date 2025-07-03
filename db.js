@@ -57,7 +57,7 @@ const schema = {
     },
     start_date: { type: Date, required: true },
     end_date: { type: Date, required: false },
-    responsible_id: { type: String, required: true },
+    responsible_id: { type: String },
     // Не потрібно зберігати project_ids у завданні
   }, {
     versionKey: false,
@@ -93,6 +93,7 @@ async function connectAndInit() {
 connectAndInit()
 
 const db = module.exports = {
+  model,
   async save(modelKey, res, input) {
     const obj = new model[modelKey](input);
     console.log(input);
@@ -107,12 +108,12 @@ const db = module.exports = {
       const newObj = await obj.save();  // Спочатку зберігаємо завдання
 
       // Тепер додаємо ID завдання до проектів
-      if (modelKey === 'task' && newObj.project_ids && newObj.project_ids.length > 0) {
+      if (modelKey === 'task') {
+
         await model.project.updateMany(
-          { _id: { $in: newObj.project_ids } },
+          { _id: { $in: input.project_ids } },
           { $push: { task_ids: newObj._id } }
         );
-        console.log(`Task ${newObj._id} added to projects: ${newObj.project_ids}`);
       }
 
       res.json(newObj);
@@ -132,22 +133,35 @@ const db = module.exports = {
         { $set: input },
         { runValidators: true, new: true }
       );
+
       if (!updatedObj) {
         throw new Error("Not modified!");
       }
 
-      // Оновлюємо проект для змін у project_ids
-      if (modelKey === 'task' && updatedObj.project_ids) {
-        // Видаляємо завдання з попередніх проектів, якщо вони змінилися
-        await model.project.updateMany(
-          { task_ids: { $in: [_id] } },
+      // Оновлення проектів для завдання
+      if (modelKey === 'task') {
+        const oldProjectIds = await model.project.aggregate([
+          {
+            $match: { task_ids: _id }  // Фільтруємо проекти, де task_ids містить зазначене завдання
+          },
+          {
+            $project: { _id: 1 }  // Повертаємо тільки ID проектів
+          }
+        ])
+        oldProjectIds.map(project => project._id);
+        const newProjectIds = input.project_ids || [];  // Нова інформація про проект
+
+        // Видаляємо завдання з усіх старих проектів
+        const resu = await model.project.updateMany(
+          { _id: { $in: oldProjectIds } },
           { $pull: { task_ids: _id } }
         );
+        console.log(resu);
 
-        // Додаємо нове завдання до проектів
+        // Додаємо завдання до нових проектів
         await model.project.updateMany(
-          { _id: { $in: updatedObj.project_ids } },
-          { $addToSet: { task_ids: _id } }
+          { _id: { $in: newProjectIds } },
+          { $addToSet: { task_ids: _id } }  // Додаємо завдання тільки, якщо воно ще не існує в проекті
         );
       }
 

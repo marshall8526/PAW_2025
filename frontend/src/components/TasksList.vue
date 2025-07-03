@@ -39,10 +39,7 @@ export default {
         .then(res => res.json().then(result => {
           this.itemsLength = result.count
           result.data.forEach(el => {
-            el.responsibleName = el.responsible?.[0]
-              ? `${el.responsible[0].firstName} ${el.responsible[0].lastName}`
-              : '- brak -'
-            el.numProjects = el.project_ids?.length || 0
+            el.responsibleName = el.responsibleName || '- brak -'
           })
           this.serverItems = result.data
           this.loading = false

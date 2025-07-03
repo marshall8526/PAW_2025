@@ -70,7 +70,7 @@ export default {
       project_ids: Array.isArray(this.task.project_ids) ? [...this.task.project_ids] : []
     }
     console.log(this.task);
-    
+
     try {
       const peopleResponse = await fetch('/api/person?sort=lastName&order=asc')
       const peopleResult = await peopleResponse.json()
@@ -85,6 +85,8 @@ export default {
 
     } catch (err) {
       console.error('Błąd ładowania danych:', err)
+      console.log('errrrorrrrrrrrrr', err);
+      this.$emit('error', err)
     }
   }
 }
