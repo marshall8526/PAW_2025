@@ -19,7 +19,7 @@ app.use(bodyParser.json())
 
 app.use(express.static('./frontend/dist'))
 
-const session = expressSession({ secret: 'paw2025', resave: false, saveUninitialized: true })
+const session = expressSession({ secret: 'paw2025', resave: false, saveUninitialized: true, cookie: { maxAge: 24 * 60 * 60 * 1000 } })
 app.use(session)
 app.use(passport.initialize())
 app.use(passport.session())
@@ -54,8 +54,16 @@ app.put('/api/person', auth.checkIfInRole([0]), (req, res) => {
     db.modify('person', res, req.body)
 })
 
-app.delete('/api/person', auth.checkIfInRole([0]), (req, res) => {
-    db.remove('person', res, req.query._id)
+app.delete('/api/person', auth.checkIfInRole([0]), async (req, res) => {
+    const { _id } = req.query;
+    const relations = await db.checkPersonRelations(res, _id);
+
+    if (relations.error) {
+        return res.status(400).json(relations);
+    }
+
+    // Якщо перевірка пройшла успішно, видаляємо особу
+    db.remove('person', res, _id);
 })
 
 app.get('/api/project', (req, res) => {

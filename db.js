@@ -39,7 +39,8 @@ const schema = {
     coords: {
       lat: { type: Number, required: false },
       lng: { type: Number, required: false }
-    }
+    },
+    task_ids: [{ type: String }]  // Завдання, що належать цьому проекту
   }, {
     versionKey: false,
     additionalProperties: false
@@ -57,11 +58,11 @@ const schema = {
     start_date: { type: Date, required: true },
     end_date: { type: Date, required: false },
     responsible_id: { type: String, required: true },
-    project_ids: [{ type: String, required: true }]
+    // Не потрібно зберігати project_ids у завданні
   }, {
     versionKey: false,
     additionalProperties: false
-  })
+  }),
 }
 
 const model = {}
@@ -71,9 +72,6 @@ const extraAggr = {
     { $lookup: { from: 'people', localField: 'manager_id', foreignField: '_id', as: 'manager' } },
     { $lookup: { from: 'people', localField: 'worker_ids', foreignField: '_id', as: 'workers' } }
   ],
-  task: [
-    { $lookup: { from: 'people', localField: 'responsible_id', foreignField: '_id', as: 'responsible' } }
-  ]
 }
 
 const url = process.env.MDB_URL
@@ -96,33 +94,66 @@ connectAndInit()
 
 const db = module.exports = {
   async save(modelKey, res, input) {
-    const obj = new model[modelKey](input)
+    const obj = new model[modelKey](input);
     console.log(input);
-    
-    const err = obj.validateSync()
+
+    const err = obj.validateSync();
     if (err) {
-      res.status(400).json({ error: err.message })
-      return
+      res.status(400).json({ error: err.message });
+      return;
     }
+
     try {
-      const newObj = await obj.save()
-      res.json(newObj)
+      const newObj = await obj.save();  // Спочатку зберігаємо завдання
+
+      // Тепер додаємо ID завдання до проектів
+      if (modelKey === 'task' && newObj.project_ids && newObj.project_ids.length > 0) {
+        await model.project.updateMany(
+          { _id: { $in: newObj.project_ids } },
+          { $push: { task_ids: newObj._id } }
+        );
+        console.log(`Task ${newObj._id} added to projects: ${newObj.project_ids}`);
+      }
+
+      res.json(newObj);
     } catch (err) {
-      res.status(400).json({ error: err.errmsg })
+      res.status(400).json({ error: err.errmsg });
     }
   },
 
   async modify(modelKey, res, input) {
-    const _id = input._id
-    delete input._id
+    const _id = input._id;
+    delete input._id;
+
     try {
-      const updatedObj = await model[modelKey].findOneAndUpdate({ _id }, { $set: input }, { runValidators: true, new: true })
+      // Оновлення завдання
+      const updatedObj = await model[modelKey].findOneAndUpdate(
+        { _id },
+        { $set: input },
+        { runValidators: true, new: true }
+      );
       if (!updatedObj) {
-        throw new Error("Task not modified!")
+        throw new Error("Not modified!");
       }
-      res.json(updatedObj)
+
+      // Оновлюємо проект для змін у project_ids
+      if (modelKey === 'task' && updatedObj.project_ids) {
+        // Видаляємо завдання з попередніх проектів, якщо вони змінилися
+        await model.project.updateMany(
+          { task_ids: { $in: [_id] } },
+          { $pull: { task_ids: _id } }
+        );
+
+        // Додаємо нове завдання до проектів
+        await model.project.updateMany(
+          { _id: { $in: updatedObj.project_ids } },
+          { $addToSet: { task_ids: _id } }
+        );
+      }
+
+      res.json(updatedObj);
     } catch (err) {
-      res.status(400).json({ error: err.message })
+      res.status(400).json({ error: err.message });
     }
   },
 
@@ -130,7 +161,7 @@ const db = module.exports = {
     try {
       const deletedObj = await model[modelKey].findOneAndDelete({ _id })
       if (!deletedObj) {
-        throw new Error("Task not deleted!")
+        throw new Error("Not deleted!")
       }
       res.json(deletedObj)
     } catch (err) {
@@ -177,5 +208,52 @@ const db = module.exports = {
     let limit = +req.query.limit
     if (!limit || limit < 0 || limit > 1000) limit = 1000
     db.retrieve(modelKey, res, matching, order, skip, limit)
+  },
+
+  async checkPersonRelations(res, _id) {
+    // Перевірка, чи особа є керівником проекту чи виконавцем
+    const projects = await model.project.find({
+      $or: [
+        { manager_id: _id },  // Керівник проекту
+        { worker_ids: { $in: [_id] } }  // Виконавець проекту
+      ]
+    });
+
+    if (projects.length > 0) {
+      return {
+        error: 'Osoba jest przypisana do projektów. Zmień przypisanie przed usunięciem.',
+        projects: projects
+      };
+    }
+
+    // Перевірка завдань, де особа є відповідальною
+    const tasks = await model.task.find({
+      responsible_id: _id  // Перевірка, чи особа відповідальна за завдання
+    });
+
+    if (tasks.length > 0) {
+      return {
+        error: 'Osoba jest przypisana do zadań. Zmień odpowiedzialność przed usunięciem.',
+        tasks: tasks
+      };
+    }
+
+    return { success: true };  // Якщо перевірка пройдена успішно
+  },
+
+  async checkTaskRelations(res, _id) {
+    // Перевірка, чи завдання пов'язане з проектами
+    const projects = await model.project.find({
+      task_ids: { $in: [_id] }  // Перевірка наявності завдання в масиві task_ids проекту
+    });
+
+    if (projects.length > 0) {
+      return {
+        error: 'Zadanie jest przypisane do projektów. Zmień przypisanie przed usunięciem.',
+        projects: projects
+      };
+    }
+
+    return { success: true };  // Якщо завдання не прив'язане до проектів
   }
 }

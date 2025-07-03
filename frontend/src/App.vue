@@ -68,7 +68,6 @@ export default {
                   this.error(err.message)
                   return
                 }
-                console.log(data)
               }
             } catch (err) {
               this.error(err.message)

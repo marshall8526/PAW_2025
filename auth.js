@@ -70,7 +70,7 @@ const auth = module.exports = {
     checkIfInRole: roleNums => (req, res, next) => {
         let intersection = getIntersection(roleNums || [], req.user ? (req.user.roles || []) : [])
         if (!req.isAuthenticated()) {
-            res.status(401).json({ error: 'Unauthorized' })
+            res.status(401).json({ error: 'Unauthorized my' })
         } else if (intersection.length > 0) {
             return next()
         } else {
