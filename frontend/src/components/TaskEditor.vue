@@ -61,15 +61,17 @@ export default {
     }
   },
   async mounted() {
+    
     this.input = {
       _id: this.task._id || undefined,
       name: this.task.name || '',
       start_date: this.task.start_date?.substring(0, 10) || new Date().toISOString().substring(0, 10),
       end_date: this.task.end_date?.substring(0, 10) || '',
-      responsible_id: this.task.responsible_id || null,
-      project_ids: Array.isArray(this.task.project_ids) ? [...this.task.project_ids] : []
+      responsible_id: this.task?.responsibleDetails?._id || null,
+      project_ids: Array.isArray(this.task.projects) ? [...this.task.projects.map((p)=>p._id)] : []
     }
-    console.log(this.task);
+    
+    console.dir(this.input);
 
     try {
       const peopleResponse = await fetch('/api/person?sort=lastName&order=asc')
@@ -85,7 +87,6 @@ export default {
 
     } catch (err) {
       console.error('Błąd ładowania danych:', err)
-      console.log('errrrorrrrrrrrrr', err);
       this.$emit('error', err)
     }
   }

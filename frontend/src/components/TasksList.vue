@@ -42,6 +42,7 @@ export default {
             el.responsibleName = el.responsibleName || '- brak -'
           })
           this.serverItems = result.data
+          
           this.loading = false
         }))
     },

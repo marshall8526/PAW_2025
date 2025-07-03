@@ -39,7 +39,8 @@ export default {
                     this.itemsLength = result.count
                     this.serverItems = result.data
                     this.loading = false
-                }))
+                })).catch((err) => window.alert(err))
+
         },
         clickItem(_, data) {
             if (!this.checkIfInRole(this.session, [0])) return

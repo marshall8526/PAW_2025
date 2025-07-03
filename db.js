@@ -140,7 +140,7 @@ const db = module.exports = {
 
       // Оновлення проектів для завдання
       if (modelKey === 'task') {
-        const oldProjectIds = await model.project.aggregate([
+        let oldProjectIds = await model.project.aggregate([
           {
             $match: { task_ids: _id }  // Фільтруємо проекти, де task_ids містить зазначене завдання
           },
@@ -148,15 +148,14 @@ const db = module.exports = {
             $project: { _id: 1 }  // Повертаємо тільки ID проектів
           }
         ])
-        oldProjectIds.map(project => project._id);
+        oldProjectIds = oldProjectIds.map(project => project._id)
         const newProjectIds = input.project_ids || [];  // Нова інформація про проект
 
         // Видаляємо завдання з усіх старих проектів
-        const resu = await model.project.updateMany(
+        await model.project.updateMany(
           { _id: { $in: oldProjectIds } },
           { $pull: { task_ids: _id } }
         );
-        console.log(resu);
 
         // Додаємо завдання до нових проектів
         await model.project.updateMany(
@@ -225,6 +224,19 @@ const db = module.exports = {
   },
 
   async checkPersonRelations(res, _id) {
+    // Перевірка завдань, де особа є відповідальною
+    const tasks = await model.task.find({
+      responsible_id: _id  // Перевірка, чи особа відповідальна за завдання
+    });
+
+    const taskNames = tasks.map(task => task.name).join(', ');  // Об'єднуємо назви завдань в один рядок
+
+    if (tasks.length > 0) {
+      return {
+        error: `Osoba jest przypisana do następujących zadań: ${taskNames}. Zmień odpowiedzialność przed usunięciem.`
+      };
+    }
+
     // Перевірка, чи особа є керівником проекту чи виконавцем
     const projects = await model.project.find({
       $or: [
@@ -233,22 +245,11 @@ const db = module.exports = {
       ]
     });
 
+    const projectNames = projects.map(project => project.name).join(', ');  // Об'єднуємо назви проектів в один рядок
+
     if (projects.length > 0) {
       return {
-        error: 'Osoba jest przypisana do projektów. Zmień przypisanie przed usunięciem.',
-        projects: projects
-      };
-    }
-
-    // Перевірка завдань, де особа є відповідальною
-    const tasks = await model.task.find({
-      responsible_id: _id  // Перевірка, чи особа відповідальна за завдання
-    });
-
-    if (tasks.length > 0) {
-      return {
-        error: 'Osoba jest przypisana do zadań. Zmień odpowiedzialność przed usunięciem.',
-        tasks: tasks
+        error: `Osoba jest przypisana do następujących projektów: ${projectNames}. Zmień przypisanie przed usunięciem.`
       };
     }
 
