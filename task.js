@@ -113,18 +113,24 @@ router.get('/:taskId/notes', /* auth.checkIfInRole([0, 1]), */ async (req, res) 
   const notes = await db.model.note
     .find({ task_id: req.params.taskId })
     .sort({ created: 1 });
-  res.json(notes);
+  const host = `${req.protocol}://${req.get('host')}`
+
+  const result = notes.map(note => ({
+    ...note.toObject(),
+    content: note.type === 1 ? note.content : `${host}${note.content}`
+  }));
+  res.json(result);
 });
 
 // POST /api/task/:taskId/notes — dodawanie notatki
 router.post('/:taskId/notes', auth.checkIfInRole([0, 1]), upload.single('file'), async (req, res) => {
-  req.user = {_id:'someIdOfAdmin'}
+  req.user = { _id: 'someIdOfAdmin' }
   try {
     const type = parseInt(req.body.type);
     console.log(req.body);
     console.log(req.file);
-    
-    
+
+
     if (![1, 2, 3].includes(type)) {
       return res.status(400).json({ error: 'Nieprawidłowy typ notatki' });
     }
