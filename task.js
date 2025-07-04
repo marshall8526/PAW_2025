@@ -3,10 +3,11 @@ const router = express.Router()
 const db = require('./db')
 const auth = require('./auth')
 const ws = require('./ws')
+const upload = require('./upload');
 
 // GET /api/task
 // admin and users
-router.get('/', auth.checkIfInRole([0]), async (req, res) => {
+router.get('/', auth.checkIfInRole([0, 1]), async (req, res) => {
   const filter = req.query.filter || '';
   try {
     const tasks = await db.model.task.aggregate([
@@ -106,5 +107,55 @@ router.delete('/', auth.checkIfInRole([0]), async (req, res) => {
   db.remove('task', res, _id);
   ws.broadcastInfo(`Usunięto zadanie (ID: ${_id})`, req.sessionID)
 })
+
+// GET /api/task/:taskId/notes — przeglądanie notatek
+router.get('/:taskId/notes', /* auth.checkIfInRole([0, 1]), */ async (req, res) => {
+  const notes = await db.model.note
+    .find({ task_id: req.params.taskId })
+    .sort({ created: 1 });
+  res.json(notes);
+});
+
+// POST /api/task/:taskId/notes — dodawanie notatki
+router.post('/:taskId/notes', auth.checkIfInRole([0, 1]), upload.single('file'), async (req, res) => {
+  req.user = {_id:'someIdOfAdmin'}
+  try {
+    const type = parseInt(req.body.type);
+    console.log(req.body);
+    console.log(req.file);
+    
+    
+    if (![1, 2, 3].includes(type)) {
+      return res.status(400).json({ error: 'Nieprawidłowy typ notatki' });
+    }
+
+    let content;
+
+    if (type === 1) {
+      if (!req.body.content?.trim()) {
+        return res.status(400).json({ error: 'Treść notatki jest wymagana' });
+      }
+      content = req.body.content.trim();
+    } else {
+      if (!req.file) {
+        return res.status(400).json({ error: 'Plik jest wymagany dla typu 2 i 3' });
+      }
+      content = `/uploads/${req.params.taskId}/${req.file.filename}`;
+    }
+
+    const note = new db.model.note({
+      task_id: req.params.taskId,
+      author_id: req.user._id,
+      type,
+      content
+    });
+
+    const saved = await note.save();
+    ws.broadcastInfo(`Dodano notatkę do zadania ${req.params.taskId}`, req.sessionID);
+    res.json(saved);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 
 module.exports = router

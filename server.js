@@ -18,6 +18,7 @@ app.use(cors())
 app.use(bodyParser.json())
 
 app.use(express.static('./frontend/dist'))
+app.use('/uploads', express.static('uploads'));
 
 const session = expressSession({ secret: 'paw2025', resave: false, saveUninitialized: true, cookie: { maxAge: 24 * 60 * 60 * 1000 } })
 app.use(session)

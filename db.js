@@ -63,6 +63,17 @@ const schema = {
     versionKey: false,
     additionalProperties: false
   }),
+  note: new mongoose.Schema({
+    _id: { type: String, default: uuid.v4 },
+    task_id: { type: String, required: true },
+    created: { type: Date, required: true, default: () => new Date() },
+    author_id: { type: String, required: true },
+    type: { type: Number, required: true, enum: [1, 2, 3] },
+    content: { type: String, required: true }  // Data URI lub tekst
+  }, {
+    versionKey: false,
+    additionalProperties: false
+  }),
 }
 
 const model = {}
