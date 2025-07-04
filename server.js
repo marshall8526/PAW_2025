@@ -48,10 +48,12 @@ app.get('/api/person', auth.checkIfInRole([0, 1]), (req, res) => {
 
 app.post('/api/person', auth.checkIfInRole([0]), (req, res) => {
     db.save('person', res, req.body)
+    ws.broadcastInfo(`Dodano nową osobę: ${req.body.firstName} ${req.body.lastName}`, req.sessionID)
 })
 
 app.put('/api/person', auth.checkIfInRole([0]), (req, res) => {
     db.modify('person', res, req.body)
+    ws.broadcastInfo(`Zmieniono dane osoby: ${req.body.firstName} ${req.body.lastName}`, req.sessionID)
 })
 
 app.delete('/api/person', auth.checkIfInRole([0]), async (req, res) => {
@@ -64,6 +66,9 @@ app.delete('/api/person', auth.checkIfInRole([0]), async (req, res) => {
 
     // Якщо перевірка пройшла успішно, видаляємо особу
     db.remove('person', res, _id);
+
+    // Повідомлення всім
+    ws.broadcastInfo(`Użytkownik został usunięty (ID: ${_id}) przez ${req.user.username}`, req.sessionID); // можна не виключати, якщо хочеш, щоб і ініціатор отримав
 })
 
 app.get('/api/project', (req, res) => {
@@ -73,14 +78,17 @@ app.get('/api/project', (req, res) => {
 
 app.post('/api/project', auth.checkIfInRole([0]), (req, res) => {
     db.save('project', res, req.body)
+    ws.broadcastInfo(`Dodano projekt: ${req.body.name}`, req.sessionID)
 })
 
 app.put('/api/project', auth.checkIfInRole([0]), (req, res) => {
     db.modify('project', res, req.body)
+    ws.broadcastInfo(`Zmieniono projekt: ${req.body.name}`, req.sessionID)
 })
 
 app.delete('/api/project', auth.checkIfInRole([0]), (req, res) => {
     db.remove('project', res, req.query._id)
+    ws.broadcastInfo(`Usunięto projekt (ID: ${req.query._id})`, req.sessionID)
 })
 
 ws.init(app)

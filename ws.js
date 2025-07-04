@@ -41,5 +41,17 @@ const ws = module.exports = {
                 console.error('Błąd w analizie sessionStore:', err)
             }
         })
-    }
+    },
+    broadcast: (data, excludeSessionID = null) => {
+        const json = JSON.stringify(data);
+        ws.getClients().forEach(client => {
+            if (excludeSessionID && client.sessionID === excludeSessionID) return;
+            try {
+                client.send(json);
+            } catch (_) { }
+        });
+    },
+    broadcastInfo: (message, excludeSessionID = null) => {
+        ws.broadcast({ type: 'notification', text: message }, excludeSessionID)
+    },
 }

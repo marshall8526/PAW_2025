@@ -64,7 +64,14 @@ export default {
               }
               this.session.ws.onmessage = event => {
                 let data = {}
-                try { data = JSON.parse(event.data) } catch (err) {
+                try {
+                  data = JSON.parse(event.data)
+                  console.log(data);
+                  
+                  if (data.type === 'notification' && data.text) {
+                    this.ok(data.text)
+                  }
+                } catch (err) {
                   this.error(err.message)
                   return
                 }

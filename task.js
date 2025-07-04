@@ -2,11 +2,11 @@ const express = require('express')
 const router = express.Router()
 const db = require('./db')
 const auth = require('./auth')
+const ws = require('./ws')
 
 // GET /api/task
 // admin and users
-// Використовуємо model.task для агрегацій та запитів
-router.get('/', async (req, res) => {
+router.get('/', auth.checkIfInRole([0]), async (req, res) => {
   const filter = req.query.filter || '';
   try {
     const tasks = await db.model.task.aggregate([
@@ -71,8 +71,7 @@ router.get('/', async (req, res) => {
     ]);
 
     res.json({ count: tasks.length, data: tasks });
-    console.log(tasks);
-    
+
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -81,19 +80,21 @@ router.get('/', async (req, res) => {
 
 // POST /api/task
 // admin only
-router.post('/', /*auth.checkIfInRole([0]),*/(req, res) => {
+router.post('/', auth.checkIfInRole([0]), (req, res) => {
   db.save('task', res, req.body)
+  ws.broadcastInfo(`Dodano nowe zadanie: ${req.body.name}`, req.sessionID);
 })
 
 // PUT /api/task
 // admin only
-router.put('/', /*auth.checkIfInRole([0]),*/(req, res) => {
+router.put('/', auth.checkIfInRole([0]), (req, res) => {
   db.modify('task', res, req.body)
+  ws.broadcastInfo(`Zmieniono zadanie: ${req.body.name}`, req.sessionID)
 })
 
 // DELETE /api/task?_id=...
 // admin only
-router.delete('/', /*auth.checkIfInRole([0]),*/ async (req, res) => {
+router.delete('/', auth.checkIfInRole([0]), async (req, res) => {
   const { _id } = req.query;
   const relations = await db.checkTaskRelations(res, _id);
 
@@ -103,6 +104,7 @@ router.delete('/', /*auth.checkIfInRole([0]),*/ async (req, res) => {
 
   // Якщо перевірка пройшла успішно, видаляємо завдання
   db.remove('task', res, _id);
+  ws.broadcastInfo(`Usunięto zadanie (ID: ${_id})`, req.sessionID)
 })
 
 module.exports = router
