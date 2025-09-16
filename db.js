@@ -40,7 +40,7 @@ const schema = {
       lat: { type: Number, required: false },
       lng: { type: Number, required: false }
     },
-    task_ids: [{ type: String }]  // Завдання, що належать цьому проекту
+    task_ids: [{ type: String }]
   }, {
     versionKey: false,
     additionalProperties: false
@@ -58,7 +58,6 @@ const schema = {
     start_date: { type: Date, required: true },
     end_date: { type: Date, required: false },
     responsible_id: { type: String },
-    // Не потрібно зберігати project_ids у завданні
   }, {
     versionKey: false,
     additionalProperties: false
@@ -69,7 +68,7 @@ const schema = {
     created: { type: Date, required: true, default: () => new Date() },
     author_id: { type: String, required: true },
     type: { type: Number, required: true, enum: [1, 2, 3] },
-    content: { type: String, required: true }  // Data URI lub tekst
+    content: { type: String, required: true }
   }, {
     versionKey: false,
     additionalProperties: false
@@ -116,9 +115,8 @@ const db = module.exports = {
     }
 
     try {
-      const newObj = await obj.save();  // Спочатку зберігаємо завдання
+      const newObj = await obj.save();
 
-      // Тепер додаємо ID завдання до проектів
       if (modelKey === 'task') {
 
         await model.project.updateMany(
@@ -138,7 +136,6 @@ const db = module.exports = {
     delete input._id;
 
     try {
-      // Оновлення завдання
       const updatedObj = await model[modelKey].findOneAndUpdate(
         { _id },
         { $set: input },
@@ -149,29 +146,26 @@ const db = module.exports = {
         throw new Error("Not modified!");
       }
 
-      // Оновлення проектів для завдання
       if (modelKey === 'task') {
         let oldProjectIds = await model.project.aggregate([
           {
-            $match: { task_ids: _id }  // Фільтруємо проекти, де task_ids містить зазначене завдання
+            $match: { task_ids: _id }
           },
           {
-            $project: { _id: 1 }  // Повертаємо тільки ID проектів
+            $project: { _id: 1 }
           }
         ])
         oldProjectIds = oldProjectIds.map(project => project._id)
-        const newProjectIds = input.project_ids || [];  // Нова інформація про проект
+        const newProjectIds = input.project_ids || [];
 
-        // Видаляємо завдання з усіх старих проектів
         await model.project.updateMany(
           { _id: { $in: oldProjectIds } },
           { $pull: { task_ids: _id } }
         );
 
-        // Додаємо завдання до нових проектів
         await model.project.updateMany(
           { _id: { $in: newProjectIds } },
-          { $addToSet: { task_ids: _id } }  // Додаємо завдання тільки, якщо воно ще не існує в проекті
+          { $addToSet: { task_ids: _id } }
         );
       }
 
@@ -235,12 +229,11 @@ const db = module.exports = {
   },
 
   async checkPersonRelations(res, _id) {
-    // Перевірка завдань, де особа є відповідальною
     const tasks = await model.task.find({
-      responsible_id: _id  // Перевірка, чи особа відповідальна за завдання
+      responsible_id: _id
     });
 
-    const taskNames = tasks.map(task => task.name).join(', ');  // Об'єднуємо назви завдань в один рядок
+    const taskNames = tasks.map(task => task.name).join(', '); 
 
     if (tasks.length > 0) {
       return {
@@ -248,15 +241,14 @@ const db = module.exports = {
       };
     }
 
-    // Перевірка, чи особа є керівником проекту чи виконавцем
     const projects = await model.project.find({
       $or: [
-        { manager_id: _id },  // Керівник проекту
-        { worker_ids: { $in: [_id] } }  // Виконавець проекту
+        { manager_id: _id }, 
+        { worker_ids: { $in: [_id] } } 
       ]
     });
 
-    const projectNames = projects.map(project => project.name).join(', ');  // Об'єднуємо назви проектів в один рядок
+    const projectNames = projects.map(project => project.name).join(', ');
 
     if (projects.length > 0) {
       return {
@@ -264,13 +256,12 @@ const db = module.exports = {
       };
     }
 
-    return { success: true };  // Якщо перевірка пройдена успішно
+    return { success: true };  
   },
 
   async checkTaskRelations(res, _id) {
-    // Перевірка, чи завдання пов'язане з проектами
     const projects = await model.project.find({
-      task_ids: { $in: [_id] }  // Перевірка наявності завдання в масиві task_ids проекту
+      task_ids: { $in: [_id] }
     });
 
     if (projects.length > 0) {
@@ -280,6 +271,6 @@ const db = module.exports = {
       };
     }
 
-    return { success: true };  // Якщо завдання не прив'язане до проектів
+    return { success: true };
   }
 }

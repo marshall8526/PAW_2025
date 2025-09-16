@@ -65,11 +65,9 @@ app.delete('/api/person', auth.checkIfInRole([0]), async (req, res) => {
         return res.status(400).json(relations);
     }
 
-    // Якщо перевірка пройшла успішно, видаляємо особу
     db.remove('person', res, _id);
 
-    // Повідомлення всім
-    ws.broadcastInfo(`Użytkownik został usunięty (ID: ${_id}) przez ${req.user.username}`, req.sessionID); // можна не виключати, якщо хочеш, щоб і ініціатор отримав
+    ws.broadcastInfo(`Użytkownik został usunięty (ID: ${_id}) przez ${req.user.username}`, req.sessionID);
 })
 
 app.get('/api/project', (req, res) => {

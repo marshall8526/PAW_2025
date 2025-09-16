@@ -3,10 +3,9 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 
-// дозволяє безпечну обробку запитів без файла
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    if (!file) return cb(null, false); // нічого не зберігати
+    if (!file) return cb(null, false);
     const dir = `./uploads/${req.params.taskId}`;
     fs.mkdirSync(dir, { recursive: true });
     cb(null, dir);

@@ -12,11 +12,11 @@ router.get('/', auth.checkIfInRole([0, 1]), async (req, res) => {
   try {
     const tasks = await db.model.task.aggregate([
       {
-        $match: { name: { $regex: filter, $options: 'i' } }  // Фільтрація за назвою завдання
+        $match: { name: { $regex: filter, $options: 'i' } }
       },
       {
         $lookup: {
-          from: 'people',  // Для отримання інформації про відповідальну особу
+          from: 'people',
           localField: 'responsible_id',
           foreignField: '_id',
           as: 'responsible'
@@ -24,7 +24,7 @@ router.get('/', auth.checkIfInRole([0, 1]), async (req, res) => {
       },
       {
         $lookup: {
-          from: 'projects',  // Включаємо проекти, до яких відноситься завдання
+          from: 'projects', 
           localField: '_id',
           foreignField: 'task_ids',
           as: 'projects'
@@ -54,16 +54,16 @@ router.get('/', auth.checkIfInRole([0, 1]), async (req, res) => {
             firstName: { $arrayElemAt: ['$responsible.firstName', 0] },
             lastName: { $arrayElemAt: ['$responsible.lastName', 0] },
           },
-          numProjects: { $size: '$projects' },  // Підрахунок кількості проектів
+          numProjects: { $size: '$projects' }, 
           projects: {
             $map: {
               input: '$projects',
               as: 'project',
               in: {
-                _id: '$$project._id',  // ID проекту
-                name: '$$project.name', // Назва проекту
-                manager_id: '$$project.manager_id', // ID менеджера проекту
-                task_ids: '$$project.task_ids' // Завдання, що належать проекту
+                _id: '$$project._id', 
+                name: '$$project.name',
+                manager_id: '$$project.manager_id',
+                task_ids: '$$project.task_ids' 
               }
             }
           }
@@ -103,13 +103,12 @@ router.delete('/', auth.checkIfInRole([0]), async (req, res) => {
     return res.status(400).json(relations);
   }
 
-  // Якщо перевірка пройшла успішно, видаляємо завдання
   db.remove('task', res, _id);
   ws.broadcastInfo(`Usunięto zadanie (ID: ${_id})`, req.sessionID)
 })
 
 // GET /api/task/:taskId/notes — przeglądanie notatek
-router.get('/:taskId/notes', /* auth.checkIfInRole([0, 1]), */ async (req, res) => {
+router.get('/:taskId/notes', auth.checkIfInRole([0, 1]), async (req, res) => {
   const notes = await db.model.note
     .find({ task_id: req.params.taskId })
     .sort({ created: 1 });

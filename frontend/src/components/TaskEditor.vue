@@ -125,7 +125,6 @@ export default {
       const projectResult = await projectResponse.json()
       this.projectItems = projectResult.data
 
-      // тільки після обох запитів
       this.updateResponsibleOptions()
 
     } catch (err) {
